@@ -1,0 +1,64 @@
+## 文件组织
+在这个项目中，我创建多个.py文件以管理代码。以下是组织结构：
+
+**1. `app.py`：**
+
+这是主应用文件，它会启动你的Flask应用并定义API路由。所有的请求处理和响应返回都会在这个文件中处理。
+
+```python
+from flask import Flask, request
+from optimizer import simulated_annealing
+app = Flask(__name__)
+
+@app.route("/getZytpcl", methods=['POST'])
+def getZytpcl():
+    # 处理请求，调用simulated_annealing函数进行计算，返回最优解
+    ...
+```
+
+**2. `optimizer.py`：**
+
+这个文件包含了模拟退火算法的实现，包括`initial_solution()`, `objective_function()`, `neighbour()`, `acceptance_probability()`和`simulated_annealing()`等函数的定义。
+
+```python
+def initial_solution(orders):
+    # 定义初始解
+    ...
+
+def objective_function(solution):
+    # 定义目标函数
+    ...
+
+def neighbour(solution):
+    # 定义邻域函数
+    ...
+
+def acceptance_probability(old_cost, new_cost, temperature):
+    # 定义接受准则函数
+    ...
+
+def simulated_annealing(orders):
+    # 模拟退火搜索
+    ...
+```
+
+**3. `utils.py`：**
+
+这个文件包含了一些实用函数，例如从请求中提取订单数据，或者调用外部API来获取运输成本和仓库库存信息。
+
+```python
+def get_orders_from_request(request):
+    # 从请求中提取订单数据
+    ...
+
+def get_total_costs(dingdan,ckdata):
+    # 从外部API获取运输成本
+    ...
+
+def get_warehouse_stocks(dingdan):
+    # 从外部API获取仓库库存信息
+    ...
+```
+
+`requirements.txt`文件列出了项目所需的所有Python依赖库。
+

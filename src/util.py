@@ -46,3 +46,11 @@ def get_total_costs(dingdan,ckdata):
     else:
         raise Exception(f"在获取总成本函数中出现错误: {response.status_code}, {response.text}")
 
+def get_orders_from_request(request):
+    # 从请求中提取订单数据
+    req = request.json  # 获取请求中的 JSON 数据
+    # 对数据进行验证和预处理
+    # 这里只是一个例子，你可能需要根据你的实际需求来实现
+    if 'Spdd' not in req:
+        raise ValueError("在获取订单中出现错误: missing 'Spdd'")
+    return req['Spdd']
