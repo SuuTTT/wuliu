@@ -7,12 +7,14 @@ import math
 app = Flask(__name__)
 # 获取仓库库存
 def get_warehouse_stocks(dingdan):
+    print(dingdan)
     print("在获取仓库库存函数中------------")
     url = 'http://localhost:8000/sptp/ckylcxByUTC'
     
     # 构建商品详情信息列表
     spxqxx = []
     for order in dingdan:
+        print(order)
         spxqxx.append({
             "spnm": order["spnm"],
             # 如果'最晚开始时间'不存在，使用'最晚调配完成时间'

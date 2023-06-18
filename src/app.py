@@ -5,18 +5,18 @@ app = Flask(__name__)
 
 @app.route("/getZytpcl", methods=['POST'])
 def getZytpcl():
-    try:
+    #try:
         # 步骤一：从请求中提取订单信息
         orders = get_orders_from_request(request)
         
         # 初始化优化结果
         result = []
         
+        # 获取仓库库存信息
+        warehouse_stocks = get_warehouse_stocks(orders)
+        
         # 步骤二：对每个订单进行处理
-        for order in orders:
-            # 获取仓库库存信息
-            warehouse_stocks = get_warehouse_stocks(order)
-            
+        for order in orders:            
             # 计算各个仓库的运输成本
             costs = []
             for ckdata in order["ckdata"]:
@@ -32,6 +32,9 @@ def getZytpcl():
         # 步骤三：处理优化结果
         return jsonify({"code": 200, "data": result})
     
-    except Exception as e:
-        # 使用指定的错误返回格式
-        return jsonify({"code": -1, "data": {}, "message": str(e)})
+    #except Exception as e:
+    #    # 使用指定的错误返回格式
+    #    return jsonify({"code": -1, "data": {}, "message": str(e)})
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8080, debug=True)
