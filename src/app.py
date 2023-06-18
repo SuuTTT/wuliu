@@ -3,6 +3,7 @@ from optimizer import simulated_annealing
 from util import *
 app = Flask(__name__)
 
+
 @app.route("/getZytpcl", methods=['POST'])
 def getZytpcl():
     #try:

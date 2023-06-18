@@ -1,81 +1,46 @@
-import random
-import math
 from util import *
 
-# 贪婪选择
-def greedy_select(stocks, order, costs):
-    allocation = []
-    total_cost = 0
-    total_quantity = 0
-    for ckdata, cost in costs:
-        if total_quantity >= order["sl"]:
-            break
-        quantity = min(order["sl"] - total_quantity, stocks[ckdata["cknm"]])
-        total_quantity += quantity
-        total_cost += quantity * cost
-        allocation.append({
-            "cknm": ckdata["cknm"],
-            "qynm": order["qynm"],
-            "spnm": order["spnm"],
-            "sl": quantity,
-            "lg": order["lg"],
-            "jd": order["jd"],
-            "wd": order["wd"],
-            "ddnm": order["ddnm"],
-            "cb": quantity * cost
-        })
-    return allocation, total_cost
+def generate_initial_solution(orders, warehouses):
+    solution = {}
+    for order in orders:
+        # Find a warehouse that can satisfy the order
+        for warehouse_info in order["ckdata"]:
+            warehouse_id = warehouse_info["cknm"]
+            warehouse = warehouses[warehouse_id]
+            # Check if the warehouse's inventory and schedule can satisfy the order
+            if is_warehouse_available(warehouse, order):
+                # Assign the warehouse to the order
+                solution[order["ddnm"]] = warehouse_id
+                # Update the warehouse's inventory and schedule
+                update_warehouse(warehouse, order)
+                break
+    return solution
 
-# 随机选择
-def random_select(stocks, order, costs):
-    allocation = []
-    total_cost = 0
-    total_quantity = 0
-    random.shuffle(costs)
-    for ckdata, cost in costs:
-        if total_quantity >= order["sl"]:
-            break
-        quantity = min(order["sl"] - total_quantity, stocks[ckdata["cknm"]])
-        total_quantity += quantity
-        total_cost += quantity * cost
-        allocation.append({
-            "cknm": ckdata["cknm"],
-            "qynm": order["qynm"],
-            "spnm": order["spnm"],
-            "sl": quantity,
-            "lg": order["lg"],
-            "jd": order["jd"],
-            "wd": order["wd"],
-            "ddnm": order["ddnm"],
-            "cb": quantity * cost
-        })
-    return allocation, total_cost
+def is_warehouse_available(warehouse, order):
+    # Check if the warehouse's inventory is enough for the order
+    if warehouse["inventory"] < order["sl"]:
+        return False
+    # Check if the warehouse's schedule is available for the order
+    for schedule in warehouse["schedules"]:
+        if is_schedule_conflict(schedule, order):
+            return False
+    return True
 
-# 退火过程
-def annealing_process(order, warehouse_stocks, costs, temp, cool, iters):
-    best_alloc, best_cost = greedy_select(warehouse_stocks, order, costs)
-    alloc, cost = best_alloc, best_cost
-    while temp > 0.1:
-        for _ in range(iters):
-            new_alloc, new_cost = random_select(warehouse_stocks, order, costs)
-            delta = new_cost - cost
-            if delta < 0 or random.uniform(0, 1) < math.exp(-delta / temp):
-                alloc, cost = new_alloc, new_cost
-                if cost < best_cost:
-                    best_alloc, best_cost = alloc, cost
-        temp *= cool
-    return best_alloc
+def is_schedule_conflict(schedule, order):
+    # Check if the order's schedule conflicts with the warehouse's schedule
+    order_start = get_order_start_time(order)
+    order_end = get_order_end_time(order)
+    if order_start < schedule["end"] and order_end > schedule["start"]:
+        return True
+    return False
 
-# 模拟退火算法
-def simulated_annealing(order, warehouse_stocks, costs, temp=10000.0, cool=0.95, iters=100):
-    # 初始化库存信息
-    stocks = {stock["cknm"]: stock["xyl"] for stock in warehouse_stocks["data"][0]["ckkcsjVOS"][0]["ckkcvos"]}
-    
-    # 排序仓库成本
-    costs.sort(key=lambda x: x[1])
-    
-    # 进行退火过程
-    best_alloc = annealing_process(order, stocks, costs, temp, cool, iters)
-    
-    # 返回最佳分配
-    return best_alloc
+def update_warehouse(warehouse, order):
+    # Update the warehouse's inventory
+    warehouse["inventory"] -= order["sl"]
+    # Update the warehouse's schedule
+    warehouse["schedules"].append({
+        "start": get_order_start_time(order),
+        "end": get_order_end_time(order),
+        "order_id": order["ddnm"],
+        "product_id": order["spnm"]
+    })
