@@ -1,5 +1,5 @@
 ## 1
-
+```
 flask/app.py", line 1516, in full_dispatch_request
     rv = self.dispatch_request()
   File "/root/miniconda3/envs/wuliu_min/lib/python3.6/site-packages/flask/app.py", line 1502, in dispatch_request
@@ -9,8 +9,8 @@ flask/app.py", line 1516, in full_dispatch_request
   File "/mnt/e/suu/workplace/wuliu/src/util.py", line 17, in get_warehouse_stocks
     "spnm": order["spnm"],
 TypeError: string indices must be integers
+```
 
-----
 
 ```
 def get_warehouse_stocks(dingdan):
@@ -28,10 +28,20 @@ def get_warehouse_stocks(dingdan):
             "zwkssj": order.get("zwkssj", order["zwdpwcsj"])
         })
 ```
----
-  输出：貌似是由于订单值传入了一个，而不是列表
+
+输出：貌似是由于订单值传入了一个，而不是列表
 {'ddnm': '1', 'qynm': '123', 'spnm': 'AUX', 'sl': 5, 'lg': '个', 'zwdpwcsj': '2023-06-30T00:00:00', 'jd': 39.913818, 'wd': 116.363625, 'ckdata': [{'cknm': 'WH1', 'pfwhnm': 'BOX1', 'yscb': 2.0}, {'cknm': 'WH2', 'pfwhnm': 'BOX2', 'yscb': 1.0}]}
-在获取仓库库存函数中------------
-ddnm
----
+
 solve it
+
+
+## 2
+
+依然未解决冲突，请你保证解决冲突：
+参考代码：（函数中的和外围的判断是否一样？）
+ if any(start_dispatch_time <= end_time and end_dispatch_time >= start_time for start_time, end_time in schedule):
+                # 如果有冲突，尝试解决冲突
+                start_dispatch_time, end_dispatch_time = resolve_time_conflict(schedule, start_dispatch_time, end_dispatch_time)
+                if start_dispatch_time is None:
+                    # 如果无法解决冲突，跳过这个仓库
+                    continue

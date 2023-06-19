@@ -197,7 +197,9 @@ def get_initial_schedules(warehouse_id):
     # There are no initial schedules for the warehouse
     return []
 
-   
+### parse
+
+
 def parse_data(json_data):
     orders = []
     for order_data in json_data["Spdd"]:
@@ -223,3 +225,12 @@ def parse_data(json_data):
     return orders, warehouses
 
 
+from datetime import datetime
+
+def parse_date(date_str):
+    for fmt in ('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S'):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            pass
+    raise ValueError('no valid date format found')
