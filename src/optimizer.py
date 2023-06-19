@@ -1,7 +1,6 @@
 from util import *
-
-
 from datetime import timedelta
+import random
 
 def resolve_time_conflict(schedule, start_time, end_time, max_attempts=1000):
     """尝试移动调度时间以解决时间冲突"""
@@ -105,7 +104,7 @@ def generate_initial_solution(orders):
 
     return solution
 
-import random
+
 def generate_warehouse_schedules(solution):
     """根据解生成仓库调度时间表"""
     warehouse_schedules = {}
@@ -165,6 +164,16 @@ def get_neighbor(solution, orders, warehouse_schedules):
     }
 
     return new_solution
+
+def cost_function(solution, orders, warehouse_schedules):
+    """计算解的成本"""
+    total_cost = 0
+    for order in solution:
+        warehouse = warehouse_schedules[order['cknm']]
+        cost = get_total_dispatch_cost(order['spnm'], order['cknm'], order['jd'], order['wd'], order['sl'], order['lg'])
+        total_cost += cost['data']
+    return total_cost
+
 
 def simulated_annealing(initial_solution, orders, warehouse_schedules, cost_function, T_initial, T_final, alpha, max_iter):
     """模拟退火算法主函数"""
