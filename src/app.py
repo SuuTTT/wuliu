@@ -15,10 +15,7 @@ def getZytpcl():
 
         # 设置模拟退火算法的参数
         config=load_config()
-        # Select parameters for regular or test run
-        # if is_test_run:  # 测试运行
-        #     params = config['Test']
-        # else:
+        
         params = config['SimulatedAnnealing']
 
         # 模拟退火算法参数
