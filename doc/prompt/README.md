@@ -1,0 +1,1 @@
+the advantage of writing prompts in vscode is that you can use the extension of markdown and copilot to write prompts. 

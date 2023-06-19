@@ -1,60 +1,33 @@
-# 测试数据
-request_data = {
-    "Spdd": [
-        {
-            "ddnm": "order001",
-            "qynm": "company001",
-            "spnm": "AUX",
-            "sl": 10.0,
-            "lg": "kg",
-            "zwdpwcsj": "2023-06-30T00:00:00Z",
-            "ckdata": [
-                {
-                    "cknm": "WH1",
-                    "pfwhnm": "grid001",
-                    "yscb": 6.0,
-                    "jd": 117.3,
-                    "wd": 39.9
-                },
-                {
-                    "cknm": "WH2",
-                    "pfwhnm": "grid002",
-                    "yscb": 8.0,
-                    "jd": 116.4,
-                    "wd": 39.9
-                }
-            ]
-        },
-        {
-            "ddnm": "order002",
-            "qynm": "company002",
-            "spnm": "B",
-            "sl": 20.0,
-            "lg": "kg",
-            "zwdpwcsj": "2023-07-01T00:00:00Z",
-            "ckdata": [
-                {
-                    "cknm": "WH1",
-                    "pfwhnm": "grid001",
-                    "yscb": 6.0,
-                    "jd": 117.3,
-                    "wd": 39.9
-                },
-                {
-                    "cknm": "WH2",
-                    "pfwhnm": "grid002",
-                    "yscb": 8.0,
-                    "jd": 116.4,
-                    "wd": 39.9
-                }
-            ]
-        }
-    ],
-}
-import requests
-import json
+# filename: test_SA_solution_generation.py
 
-url = "http://localhost:8080/getZytpcl"
-headers = {'Content-Type': 'application/json'}
-response = requests.post(url, headers=headers, data=json.dumps(request_data))
-print(response.json())
+import unittest
+from optimizer import *
+from util import *
+
+class TestSolutionGeneration(unittest.TestCase):
+
+    def test_gen_neighbour(self):
+        orders = read_orders_from_file('orders_data2.json')
+        initial_solution = generate_initial_solution(orders)
+        warehouse_schedules = generate_warehouse_schedules(initial_solution)
+        neighbor = get_neighbor(initial_solution, orders, warehouse_schedules)
+        self.assertIsNotNone(neighbor)
+
+    def test_generate_initial_solution(self):
+        orders = read_orders_from_file('orders_data2.json')
+        solution = generate_initial_solution(orders)
+        #self.assertEqual(len(solution), len(orders))
+        for sol in solution:
+            self.assertIn('cknm', sol)
+            self.assertIn('ksbysj', sol)
+            self.assertIn('jsbysj', sol)
+
+    def test_initial_solution_2(self):
+        orders = read_orders_from_file('orders_data.json')
+        initial_solution = generate_initial_solution(orders)
+        #self.assertEqual(len(initial_solution), len(orders))
+        for strategy in initial_solution:
+            self.assertIn('cknm', strategy)
+
+if __name__ == "__main__":
+    unittest.main()

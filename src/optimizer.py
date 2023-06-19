@@ -45,8 +45,18 @@ def generate_initial_solution(orders):
     for order in orders:
         remaining_quantity = order['sl']  # 该订单的剩余需求量
 
+        # Get warehouse inventory for the product and time window
+        warehouse_inventory_response = get_warehouse_inventory(order['spnm'], order['zwdpwcsj'])
+        warehouse_inventory = warehouse_inventory_response['data'][0]['ckkcsj VOS'][0]['ckkcvos'] if warehouse_inventory_response is not None else []
+
+        # Merge the inventory data with warehouse data in 'ckdata'
+        for warehouse in order['ckdata']:
+            for inventory in warehouse_inventory:
+                if warehouse['cknm'] == inventory['cknm']:
+                    warehouse['xyl'] = inventory['xyl']
+
         # 获取可以为该订单供货的所有仓库，注意现在我们不再需要满足仓库的库存量大于订单需求量这一条件
-        available_warehouses = [warehouse for warehouse in order['ckdata'] if warehouse['xyl'] > 0]
+        available_warehouses = [warehouse for warehouse in order['ckdata'] if 'xyl' in warehouse and warehouse['xyl'] > 0]
 
         # 对可用仓库按照成本进行排序
         available_warehouses.sort(key=lambda x: x['yscb'])

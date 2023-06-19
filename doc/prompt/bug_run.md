@@ -1,3 +1,5 @@
+
+
 ## 1
 ```
 flask/app.py", line 1516, in full_dispatch_request
@@ -45,3 +47,72 @@ solve it
                 if start_dispatch_time is None:
                     # 如果无法解决冲突，跳过这个仓库
                     continue
+
+
+## 3 ckdata has no xyl
+solution add xyl to ckdata
+
+### prompt
+```
+def generate_initial_solution(orders):
+    solution = []
+    # 创建一个字典，为每个仓库建立一个调度表
+    warehouse_schedules = {}
+
+    for order in orders:
+        remaining_quantity = order['sl']  # 该订单的剩余需求量
+
+        # 获取可以为该订单供货的所有仓库，注意现在我们不再需要满足仓库的库存量大于订单需求量这一条件
+        available_warehouses = [warehouse for warehouse in order['ckdata'] if warehouse['xyl'] > 0]
+
+        # 对可用仓库按照成本进行排序
+        available_warehouses.sort(key=lambda x: x['yscb'])
+
+        for warehouse in available_warehouses:
+            # 计算从这个仓库分配的商品数量，不能超过仓库的库存量，也不能超过订单的剩余需求量
+            dispatch_quantity = min(warehouse['xyl'], remaining_quantity)
+
+            # rest of the code ...
+
+```
+there is a problem in the code above, the xyl is not in ckdata, so we need to add xyl to ckdata
+here is how to access the xyl
+
+```
+def get_warehouse_inventory(spnm, zwkssj):
+    url = ckylcxByUTC_URL
+    payload = {
+        "spxqxx": [
+            {
+                "spnm": spnm,
+                "zwkssj": zwkssj
+            }
+        ]
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+```
+where return response.json() is `
+{
+  "code": 200,
+  "data": [
+    {
+      "ckkcsj VOS": [
+        {
+          "sjjd": "时间节点",
+          "ckkcvos": [
+            {"cknm": "仓库内码", "xyl": 50.0},
+            {"cknm": "仓库内码", "xyl": 100.0},
+            {"cknm": "仓库内码", "xyl": 200.0}
+          ]
+        }
+      ],
+      "spnm": "商品内码"
+    }
+  ]
+}
+`
