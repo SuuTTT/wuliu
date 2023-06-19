@@ -105,31 +105,82 @@ def generate_initial_solution(orders):
 
     return solution
 
-def is_warehouse_available(warehouse, order):
-    # Check if the warehouse's inventory is enough for the order
-    if warehouse["inventory"] < order["sl"]:
-        return False
-    # Check if the warehouse's schedule is available for the order
-    for schedule in warehouse["schedules"]:
-        if is_schedule_conflict(schedule, order):
-            return False
-    return True
+import random
+def generate_warehouse_schedules(solution):
+    """根据解生成仓库调度时间表"""
+    warehouse_schedules = {}
+    for dispatch in solution:
+        # 如果仓库还没有调度时间表，创建一个新的空列表
+        if dispatch['cknm'] not in warehouse_schedules:
+            warehouse_schedules[dispatch['cknm']] = []
 
-def is_schedule_conflict(schedule, order):
-    # Check if the order's schedule conflicts with the warehouse's schedule
-    order_start = get_order_start_time(order)
-    order_end = get_order_end_time(order)
-    if order_start < schedule["end"] and order_end > schedule["start"]:
-        return True
-    return False
+        # 添加新的调度时间
+        warehouse_schedules[dispatch['cknm']].append((dispatch['ksbysj'], dispatch['jsbysj']))
 
-def update_warehouse(warehouse, order):
-    # Update the warehouse's inventory
-    warehouse["inventory"] -= order["sl"]
-    # Update the warehouse's schedule
-    warehouse["schedules"].append({
-        "start": get_order_start_time(order),
-        "end": get_order_end_time(order),
-        "order_id": order["ddnm"],
-        "product_id": order["spnm"]
-    })
+    return warehouse_schedules
+
+def get_neighbor(solution, orders, warehouse_schedules):
+    """生成邻域解"""
+    # 随机选择一个订单
+    order_index = random.randint(0, len(orders) - 1)
+    order = orders[order_index]
+
+    # 随机选择一个新的仓库
+    available_warehouses = order['ckdata']
+    warehouse_index = random.randint(0, len(available_warehouses) - 1)
+    warehouse = available_warehouses[warehouse_index]
+
+    # 为新的仓库分配尽可能多的商品
+    dispatch_quantity = min(warehouse['xyl'], order['sl'])
+
+    # 计算新的调度时间
+    total_dispatch_cost = get_total_dispatch_cost(order['spnm'], warehouse['cknm'], order['jd'], order['wd'], dispatch_quantity, order['lg'])
+    total_dispatch_time = total_dispatch_cost['data'] if total_dispatch_cost else None
+    zwdpwcsj = datetime.strptime(order['zwdpwcsj'], '%Y-%m-%d')
+    start_dispatch_time = zwdpwcsj - timedelta(hours=total_dispatch_time)
+    end_dispatch_time = zwdpwcsj - timedelta(hours=warehouse['yscb'])
+
+    # 解决可能的时间冲突
+    schedule = warehouse_schedules.get(warehouse['cknm'], [])
+    start_dispatch_time, end_dispatch_time = resolve_time_conflict(schedule, start_dispatch_time, end_dispatch_time)
+    if start_dispatch_time is None:
+        # 如果无法解决时间冲突，那么这个邻居就无效，返回原解
+        return solution
+
+    # 创建新的解，只更改选定的订单
+    new_solution = solution.copy()
+    new_solution[order_index] = {
+        'cknm': warehouse['cknm'],
+        'qynm': order['qynm'],
+        'spnm': order['spnm'],
+        'xqsj': order['zwdpwcsj'],
+        'ksbysj': start_dispatch_time,
+        'jsbysj': end_dispatch_time,
+        'cb': total_dispatch_time,
+        'sl': dispatch_quantity,
+        'lg': order['lg'],
+        'jd': order['jd'],
+        'wd': order['wd'],
+        'ddnm': order['ddnm']
+    }
+
+    return new_solution
+
+def simulated_annealing(initial_solution, orders, warehouse_schedules, cost_function, T_initial, T_final, alpha, max_iter):
+    """模拟退火算法主函数"""
+    current_solution = initial_solution
+    current_cost = cost_function(current_solution)
+    T = T_initial
+
+    while T > T_final:
+        for _ in range(max_iter):
+            new_solution = get_neighbor(current_solution, orders, warehouse_schedules)
+            new_cost = cost_function(new_solution)
+            cost_diff = new_cost - current_cost
+            if cost_diff < 0 or random.random() < math.exp(-cost_diff / T):
+                current_solution = new_solution
+                current_cost = new_cost
+
+        T *= alpha
+
+    return current_solution

@@ -234,3 +234,10 @@ def parse_date(date_str):
         except ValueError:
             pass
     raise ValueError('no valid date format found')
+
+import json
+
+def read_orders_from_file(file_path):
+    with open(file_path, 'r') as f:
+        orders = json.load(f)
+    return orders

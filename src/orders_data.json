@@ -1,0 +1,44 @@
+[
+    {
+        "ckdata": [
+            {"cknm": "Warehouse1", "xyl": 100, "yscb": 5},
+            {"cknm": "Warehouse2", "xyl": 100, "yscb": 7}
+        ],
+        "qynm": "Region1",
+        "spnm": "Product1",
+        "zwdpwcsj": "2023-06-30",
+        "sl": 10,
+        "lg": "kg",
+        "jd": 31.2304,
+        "wd": 121.4737,
+        "ddnm": "Order1"
+    },
+    {
+        "ckdata": [
+            {"cknm": "Warehouse1", "xyl": 100, "yscb": 5},
+            {"cknm": "Warehouse2", "xyl": 100, "yscb": 7}
+        ],
+        "qynm": "Region2",
+        "spnm": "Product2",
+        "zwdpwcsj": "2023-06-30",
+        "sl": 20,
+        "lg": "kg",
+        "jd": 39.9042,
+        "wd": 116.4074,
+        "ddnm": "Order2"
+    },
+    {
+        "ckdata": [
+            {"cknm": "Warehouse1", "xyl": 100, "yscb": 5},
+            {"cknm": "Warehouse2", "xyl": 100, "yscb": 7}
+        ],
+        "qynm": "Region3",
+        "spnm": "Product3",
+        "zwdpwcsj": "2023-06-30",
+        "sl": 300,
+        "lg": "kg",
+        "jd": 29.4316,
+        "wd": 106.9123,
+        "ddnm": "Order3"
+    }
+]
