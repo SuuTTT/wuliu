@@ -1,20 +1,36 @@
 from util import *
 
-def generate_initial_solution(orders, warehouses):
-    solution = {}
+def generate_initial_solution(orders):
+    solution = []
     for order in orders:
-        # Find a warehouse that can satisfy the order
-        for warehouse_info in order["ckdata"]:
-            warehouse_id = warehouse_info["cknm"]
-            warehouse = warehouses[warehouse_id]
-            # Check if the warehouse's inventory and schedule can satisfy the order
-            if is_warehouse_available(warehouse, order):
-                # Assign the warehouse to the order
-                solution[order["ddnm"]] = warehouse_id
-                # Update the warehouse's inventory and schedule
-                update_warehouse(warehouse, order)
-                break
+        # 对于每个订单，找到可以提供商品的仓库
+        available_warehouses = [warehouse for warehouse in order['ckdata'] if warehouse['xyl'] >= order['sl']]
+        if not available_warehouses:
+            # 如果没有仓库可以提供足够的商品，跳过这个订单
+            continue
+        # 选择成本最小的仓库
+        selected_warehouse = min(available_warehouses, key=lambda x: x['yscb'])
+        # 计算搬运开始和结束时间
+        total_dispatch_time = get_total_dispatch_cost(order['spnm'], selected_warehouse['cknm'], order['jd'], order['wd'], order['sl'], order['lg'])
+        start_dispatch_time = order['zwdpwcsj'] - total_dispatch_time
+        end_dispatch_time = order['zwdpwcsj'] - selected_warehouse['yscb']
+        # 添加到解中
+        solution.append({
+            'cknm': selected_warehouse['cknm'],
+            'qynm': order['qynm'],
+            'spnm': order['spnm'],
+            'xqsj': order['zwdpwcsj'],
+            'ksbysj': start_dispatch_time,
+            'jsbysj': end_dispatch_time,
+            'cb': total_dispatch_time,
+            'sl': order['sl'],
+            'lg': order['lg'],
+            'jd': order['jd'],
+            'wd': order['wd'],
+            'ddnm': order['ddnm']
+        })
     return solution
+
 
 def is_warehouse_available(warehouse, order):
     # Check if the warehouse's inventory is enough for the order

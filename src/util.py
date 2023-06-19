@@ -1,10 +1,58 @@
+import json
 from flask import Flask, request, jsonify
 from queue import PriorityQueue
 import random
 import copy
 import requests
 import math
+import requests
+import logging
+import configparser
+
+def load_config():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return config
+
+config = load_config()
+queryYscb_URL = config.get('API', 'queryYscb')
+ckylcxByUTC_URL = config.get('API', 'ckylcxByUTC')
 app = Flask(__name__)
+# new api
+def get_warehouse_inventory(spnm, zwkssj):
+    url = queryYscb_URL
+    payload = {
+        "spxqxx": [
+            {
+                "spnm": spnm,
+                "zwkssj": zwkssj
+            }
+        ]
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
+def get_total_dispatch_cost(spnm, cknm, jd, wd, sl, lg):
+    url = ckylcxByUTC_URL
+    payload = {
+        "spnm": spnm,
+        "cknm": cknm,
+        "jd": jd,
+        "wd": wd,
+        "sl": sl,
+        "lg": lg
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+    
 # 获取仓库库存
 def get_warehouse_stocks(orders, transport_time):
     print("in get_warehouse_stocks function------------")
@@ -36,6 +84,52 @@ def get_warehouse_stocks(orders, transport_time):
     response = requests.post(url, json=payload)
     if response.status_code == 200:
         return response.json()
+
+
+
+def get_warehouse_stocks(dingdan):
+    url=queryYscb_URL
+    if not dingdan:
+        raise ValueError("订单列表不能为空")
+
+    for order in dingdan:
+        if "spnm" not in order or ("zwkssj" not in order and "zwdpwcsj" not in order):
+            raise ValueError("每个订单都必须包含商品内码和至少一个时间字段")
+
+    logging.info("在获取仓库库存函数中------------")
+
+    # 构建商品详情信息列表
+    spxqxx = []
+    for order in dingdan:
+        spxqxx.append({
+            "spnm": order["spnm"],
+            # 如果'最晚开始时间'不存在，使用'最晚调配完成时间'
+            "zwkssj": order.get("zwkssj", order["zwdpwcsj"])
+        })
+
+    payload = {
+        "spxqxx": spxqxx
+    }
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logging.error(f"在获取仓库库存函数中出现错误: {e}")
+        return None
+
+    data = response.json()
+    if "code" not in data or "data" not in data:
+        logging.error(f"返回的数据格式不正确: {data}")
+        return None
+
+    if data["code"] != 200:
+        logging.error(f"在获取仓库库存函数中出现错误: {data['code']}, {data.get('message', '')}")
+        return None
+
+    logging.info(data)
+    return data
+
+
 # 获取从坐标到仓库运输商品的总成本=出库时间+运输成本+提收成本（暂时不考虑）
 def get_total_costs(order, warehouse):
     print("in get_total_costs function------------")
@@ -82,7 +176,7 @@ def get_order_end_time(order):
 
 
 import requests
-
+import logging
 def get_initial_inventory(warehouse_id, all_orders):
     # Filter out the orders that are related to this warehouse
     related_orders = [order for order in all_orders if warehouse_id in [w["id"] for w in order["warehouses"]]]
