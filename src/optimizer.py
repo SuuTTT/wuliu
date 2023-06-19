@@ -1,8 +1,8 @@
 from util import *
 from datetime import timedelta
 import random
-
-def resolve_time_conflict(schedule, start_time, end_time, max_attempts=1000):
+import argparse
+def resolve_time_conflict(schedule, start_time, end_time, max_attempts=120):
     """尝试移动调度时间以解决时间冲突"""
     # 尝试移动的时间间隔
     interval = timedelta(hours=1)
@@ -165,14 +165,20 @@ def get_neighbor(solution, orders, warehouse_schedules):
 
     return new_solution
 
-def cost_function(solution, orders, warehouse_schedules):
-    """计算解的成本"""
+def cost_function(solution):
+    """Calculate the total cost of a solution."""
     total_cost = 0
-    for order in solution:
-        warehouse = warehouse_schedules[order['cknm']]
-        cost = get_total_dispatch_cost(order['spnm'], order['cknm'], order['jd'], order['wd'], order['sl'], order['lg'])
-        total_cost += cost['data']
+    for dispatch in solution:
+        # Add the dispatch cost
+        total_cost += dispatch['cb']
+
+        # Add a penalty if an order cannot be fulfilled
+        # This is just a placeholder, replace with your actual constraints
+        #if dispatch['sl'] < 0:
+        #    total_cost += 10000  # Adjust the penalty value as needed
+
     return total_cost
+
 
 
 def simulated_annealing(initial_solution, orders, warehouse_schedules, cost_function, T_initial, T_final, alpha, max_iter):
@@ -193,3 +199,40 @@ def simulated_annealing(initial_solution, orders, warehouse_schedules, cost_func
         T *= alpha
 
     return current_solution
+
+
+def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', action='store_true', help='Run in test mode')
+    args = parser.parse_args()
+
+    # 假设我们有以下订单和仓库
+    orders = read_orders_from_file('orders_data.json')
+
+    # 生成初始解
+    initial_solution = generate_initial_solution(orders)
+
+    # 生成仓库调度时间表
+    warehouse_schedules = generate_warehouse_schedules(initial_solution)
+
+    # Select parameters for regular or test run
+    if args.test:  # You need to define this variable somewhere
+        params = config['Test']
+    else:
+        params = config['SimulatedAnnealing']
+
+    # 模拟退火算法参数
+    T_initial = int(params['T_initial'])
+    T_final = int(params['T_final'])
+    alpha = float(params['alpha'])
+    max_iter = int(params['max_iter'])
+
+
+    # 执行模拟退火算法
+    final_solution = simulated_annealing(initial_solution, orders, warehouse_schedules, cost_function, T_initial, T_final, alpha, max_iter)
+
+    print(final_solution)
+
+if __name__ == "__main__":
+    main()

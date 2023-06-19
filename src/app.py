@@ -14,10 +14,19 @@ def getZytpcl():
         optimized_solution = []
 
         # 设置模拟退火算法的参数
-        T_initial = 100
-        T_final = 0.1
-        alpha = 0.9
-        max_iter = 1000
+        config=load_config()
+        # Select parameters for regular or test run
+        # if is_test_run:  # 测试运行
+        #     params = config['Test']
+        # else:
+        params = config['SimulatedAnnealing']
+
+        # 模拟退火算法参数
+        T_initial = int(params['T_initial'])
+        T_final = int(params['T_final'])
+        alpha = float(params['alpha'])
+        max_iter = int(params['max_iter'])
+
 
         # 对每个订单进行处理
         for order in Spdd:
