@@ -11,9 +11,17 @@ def generate_initial_solution(orders):
         # 选择成本最小的仓库
         selected_warehouse = min(available_warehouses, key=lambda x: x['yscb'])
         # 计算搬运开始和结束时间
-        total_dispatch_time = get_total_dispatch_cost(order['spnm'], selected_warehouse['cknm'], order['jd'], order['wd'], order['sl'], order['lg'])
-        start_dispatch_time = order['zwdpwcsj'] - total_dispatch_time
-        end_dispatch_time = order['zwdpwcsj'] - selected_warehouse['yscb']
+        total_dispatch_cost = get_total_dispatch_cost(order['spnm'], selected_warehouse['cknm'], order['jd'], order['wd'], order['sl'], order['lg'])
+        total_dispatch_time = total_dispatch_cost['data'] if total_dispatch_cost else None
+        # 转换字符串为 datetime 对象
+        zwdpwcsj = datetime.strptime(order['zwdpwcsj'], '%Y-%m-%d')
+
+        # 计算开始调配的时间
+        start_dispatch_time = zwdpwcsj - timedelta(hours=total_dispatch_time)
+        # 计算结束调配的时间
+        end_dispatch_time = zwdpwcsj - timedelta(hours=selected_warehouse['yscb'])
+
+
         # 添加到解中
         solution.append({
             'cknm': selected_warehouse['cknm'],

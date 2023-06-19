@@ -20,7 +20,7 @@ ckylcxByUTC_URL = config.get('API', 'ckylcxByUTC')
 app = Flask(__name__)
 # new api
 def get_warehouse_inventory(spnm, zwkssj):
-    url = queryYscb_URL
+    url = ckylcxByUTC_URL
     payload = {
         "spxqxx": [
             {
@@ -37,7 +37,7 @@ def get_warehouse_inventory(spnm, zwkssj):
         return None
 
 def get_total_dispatch_cost(spnm, cknm, jd, wd, sl, lg):
-    url = ckylcxByUTC_URL
+    url = queryYscb_URL
     payload = {
         "spnm": spnm,
         "cknm": cknm,
@@ -87,7 +87,7 @@ def get_warehouse_stocks(orders, transport_time):
 
 
 
-def get_warehouse_stocks(dingdan):
+def get_warehouse_stocks_(dingdan):
     url=queryYscb_URL
     if not dingdan:
         raise ValueError("订单列表不能为空")
