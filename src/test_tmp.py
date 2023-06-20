@@ -37,6 +37,7 @@ def initial_state(orders):
     strategies = []
     #return a dict to implement get_ckdata_for_order(ddnm)
     ckdata_for_order={}
+    sl_for_order={}
     for item in orders['Spdd']:
         ddnm = item.get("ddnm")
         qynm = item.get("qynm")
@@ -49,6 +50,7 @@ def initial_state(orders):
         
         ckdata_list = item.get("ckdata", [])
         ckdata_for_order[ddnm]=ckdata_list
+        sl_for_order[ddnm]=total_sl
         for ckdata in ckdata_list:
             strategy_item = {}
             strategy_item["ddnm"] = ddnm
@@ -84,7 +86,7 @@ def initial_state(orders):
             if total_sl <= 0:
                 break
 
-    return strategies, ckdata_for_order
+    return strategies, ckdata_for_order, sl_for_order
 
 
 #print(init_strategy)
@@ -139,7 +141,7 @@ def neighbor(state,ckdata_for_order):
 
     return new_state
 
-def is_valid(state):
+def is_valid(state,sl_for_order):
     """
     Check the validity of a state.
 
@@ -163,14 +165,14 @@ def is_valid(state):
     for ddnm, strategies in strategies_by_ddnm.items():
         total_sl = sum(strategy["sl"] for strategy in strategies)
         # If the sum of 'sl' for a specific 'ddnm' is less than the 'sl' of the order, return False.
-        if total_sl < orders[ddnm]["sl"]:
+        if total_sl < sl_for_order[ddnm]:
             return False
 
     # Check the second constraint.
     for (cknm, spnm), strategies in strategies_by_cknm_spnm.items():
         total_sl = sum(strategy["sl"] for strategy in strategies)
         # If the sum of 'sl' for a specific 'cknm' and 'spnm' is greater than the 'xyl' of the warehouse, return False.
-        if total_sl > get_warehouse_capacity(cknm, spnm, strategies[0]["xqsj"]):
+        if total_sl > get_warehouse_capacity(cknm, spnm, strategies[0]["xqsj"].isoformat()):
             return False
 
     # Check the third constraint.
@@ -195,14 +197,14 @@ def acceptance_probability(old_cost, new_cost, temperature):
 
 def simulated_annealing():
     # Set the initial state and temperature.
-    state,ckdata_for_order  = initial_state(orders)
+    state,ckdata_for_order,sl_for_order  = initial_state(orders)
     temperature = 1.0
     cooling_rate = 0.003
 
     while temperature > 0.01:
         new_state = neighbor(state,ckdata_for_order)
         # Check if the new state is valid.
-        if not is_valid(new_state):
+        if not is_valid(new_state,sl_for_order):
             continue
 
         old_cost = cost(state)
