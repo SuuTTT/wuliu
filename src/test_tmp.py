@@ -1,7 +1,7 @@
 import collections
 from util import *
 
-orders = read_orders_from_file('orders_data.json')
+orders = read_orders_from_file('orders_data2.json')
 # strategies = order_to_strategy(orders)
 # print(strategies)
 # just print the ddnm, cknm, sl of strategy
@@ -197,14 +197,21 @@ def acceptance_probability(old_cost, new_cost, temperature):
 
 def simulated_annealing():
     # Set the initial state and temperature.
-    state,ckdata_for_order,sl_for_order  = initial_state(orders)
+    state, ckdata_for_order, sl_for_order = initial_state(orders)
     temperature = 1.0
-    cooling_rate = 0.003
+    cooling_rate = 0.5
+    max_attempts = 1  # Set a maximum limit for attempts.
+
+    attempts = 0  # Initialize the counter for attempts.
 
     while temperature > 0.01:
-        new_state = neighbor(state,ckdata_for_order)
+        new_state = neighbor(state, ckdata_for_order)
+
         # Check if the new state is valid.
-        if not is_valid(new_state,sl_for_order):
+        if not is_valid(new_state, sl_for_order):
+            attempts += 1  # Increment the counter.
+            if attempts >= max_attempts:  # If the maximum limit is reached, break the loop.
+                break
             continue
 
         old_cost = cost(state)
@@ -215,7 +222,22 @@ def simulated_annealing():
 
         # Decrease the temperature.
         temperature *= 1 - cooling_rate
+    if is_valid(state, sl_for_order):
+        return state
+    else:
+        return None
 
-    return state
+def format_solution(solution):
+    formatted_solution = []
+    for strategy in solution:
+        formatted_strategy = strategy.copy()
+        formatted_strategy['xqsj'] = formatted_strategy['xqsj'].strftime("%Y-%m-%dT%H:%M:%S")
+        formatted_strategy['ksbysj'] = formatted_strategy['ksbysj'].strftime("%Y-%m-%dT%H:%M:%S")
+        formatted_strategy['jsbysj'] = formatted_strategy['jsbysj'].strftime("%Y-%m-%dT%H:%M:%S")
+        formatted_strategy['cb'] = formatted_strategy['cb'].total_seconds() / 3600
+        formatted_solution.append(formatted_strategy)
+    return formatted_solution
 
-simulated_annealing()
+solution=simulated_annealing()
+solution = format_solution(solution)
+print(solution)

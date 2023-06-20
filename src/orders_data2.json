@@ -1,52 +1,49 @@
- [
-        {
-            "ddnm": "order001",
-            "qynm": "company001",
-            "spnm": "AUX",
-            "sl": 10.0,
-            "lg": "kg",
-            "zwdpwcsj": "2023-06-30T00:00:00Z",
-            "ckdata": [
-                {
-                    "cknm": "WH1",
-                    "pfwhnm": "grid001",
-                    "yscb": 6.0,
-                    "jd": 117.3,
-                    "wd": 39.9
-                },
-                {
-                    "cknm": "WH2",
-                    "pfwhnm": "grid002",
-                    "yscb": 8.0,
-                    "jd": 116.4,
-                    "wd": 39.9
-                }
-            ]
-        },
-        {
-            "ddnm": "order002",
-            "qynm": "company002",
-            "spnm": "B",
-            "sl": 20.0,
-            "lg": "kg",
-            "zwdpwcsj": "2023-07-01T00:00:00Z",
-            "ckdata": [
-                {
-                    "cknm": "WH1",
-                    "pfwhnm": "grid001",
-                    "yscb": 6.0,
-                    "jd": 117.3,
-                    "wd": 39.9
-                },
-                {
-                    "cknm": "WH2",
-                    "pfwhnm": "grid002",
-                    "yscb": 8.0,
-                    "jd": 116.4,
-                    "wd": 39.9
-                }
-            ]
-        }
+{
+    "Spdd": [
+      {
+        "ddnm": "1",
+        "qynm": "123",
+        "spnm": "AUX",
+        "sl": 10,
+        "lg": "个",
+        "zwdpwcsj": "2023-06-30T00:00:00",
+        "jd": 39.913818,
+        "wd": 116.363625,
+        "ckdata": [
+          {
+            "cknm": "WH1",
+            "pfwhnm": "BOX1",
+            "yscb": 2.0
+          },
+          {
+            "cknm": "WH2",
+            "pfwhnm": "BOX2",
+            "yscb": 1.0
+          }
+        ]
+      },
+      {
+        "ddnm": "2",
+        "qynm": "678",
+        "spnm": "AUX",
+        "sl": 5,
+        "lg": "个",
+        "zwdpwcsj": "2023-06-30T00:01:00",
+        "jd": 39.913818,
+        "wd": 116.363625,
+        "ckdata": [
+          {
+            "cknm": "WH1",
+            "pfwhnm": "BOX1",
+            "yscb": 2.0
+          },
+          {
+            "cknm": "WH2",
+            "pfwhnm": "BOX2",
+            "yscb": 1.0
+          }
+        ]
+      }
     ]
-
-
+  }
+  
