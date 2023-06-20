@@ -1,4 +1,4 @@
-
+## 环境配置
 首先，你需要确保你有以下文件：
 
 - Miniconda 的安装包：`Miniconda3-latest-Linux-x86_64.sh`
@@ -53,3 +53,33 @@
     ```
 
 现在，你应该可以在你的 `wuliu` 环境中运行你的项目源代码。如果你的项目中有 `main.py` 文件，你可以通过运行 `python main.py` 来启动你的项目。
+
+## 运行项目
+
+1. 激活 `wuliu` 环境：
+
+    ```bash
+    conda activate wuliu
+    ```
+2. 导航到你的项目源代码的文件夹：
+
+    ```bash
+    cd /home/user/wuliu-master
+    ```
+3. 运行 `api.py` 文件, 该文件会启动一个本地服务器：
+
+    ```bash
+    python api.py
+    ```
+## 测试项目
+
+1. 运行 `api_mock.py` 文件, 该文件会启动一个本地服务器, 模拟2个查询接口：
+
+    ```bash
+    python api_mock.py
+    ```
+2. 运行 `api_test.py` 文件, 该文件会使用样例发起请求。
+
+    ```bash
+    python api_test.py
+    ```

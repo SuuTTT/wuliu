@@ -199,8 +199,8 @@ def simulated_annealing(orders):
     # Set the initial state and temperature.
     state, ckdata_for_order, sl_for_order = initial_state(orders)
     temperature = 1.0
-    cooling_rate = 0.5
-    max_attempts = 1  # Set a maximum limit for attempts.
+    cooling_rate = 0.1
+    max_attempts = 100  # Set a maximum limit for attempts.
 
     attempts = 0  # Initialize the counter for attempts.
 
