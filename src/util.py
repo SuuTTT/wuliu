@@ -50,7 +50,7 @@ def get_total_dispatch_cost(spnm, cknm, jd, wd, sl, lg):
         return None
 
 
-def order_to_strategy(orders):
+def orders_to_strategies(orders):
     strategies = []
 
     for item in orders['Spdd']:
@@ -72,7 +72,7 @@ def order_to_strategy(orders):
             strategy_item["lg"] = lg
             strategy_item["xqsj"] = zwdpwcsj
             strategy_item["cknm"] = ckdata.get("cknm")
-            strategy_item["cb"] = ckdata.get("yscb")
+            strategy_item["yscb"] = ckdata.get("yscb")
             strategy_item["jd"] = jd
             strategy_item["wd"] = wd
             #使用parse_date函数将字符串转换为datetime对象         
@@ -88,6 +88,7 @@ def order_to_strategy(orders):
             strategy_item["zwdpwcsj"] = zwdpwcsj
             strategy_item["ksbysj"] = ksbysj
             strategy_item["jsbysj"] = jsbysj
+            strategy_item["cb"]=ztpsj
             strategies.append(strategy_item)
 
     return strategies
@@ -128,7 +129,7 @@ def get_warehouse_inventory(spnm, zwkssj):
     else:
         return None
 
-
+# not consider spnm
 def get_all_warehouses_xyl(strategies, zwkssj):
     """
     Given a list of strategies, calls `get_warehouse_inventory` for each 'spnm' in each strategy.

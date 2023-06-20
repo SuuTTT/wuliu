@@ -100,4 +100,38 @@ def get_warehouse_inventory(spnm, zwkssj):
     else:
         return None
 
-## simulate
+## simulate annealing
+### prompt
+use simulated annealing to optimize the strategies
+the strategies is of the form of list of dict as follows
+
+```json
+[
+    {
+      "cknm": "仓库内码",
+      "qynm": "企业内码",
+      "spnm": "商品内码",
+      "xqsj": "需求时间",
+      "ksbysj": "开始搬运时间",
+      "jsbysj": "结束搬运时间",
+      "cb": "总调配成本",
+      "sl": "分配的数量",
+      "lg": "单位",
+      "jd": "经度",
+      "wd": "纬度",
+      "ddnm": "订单内码"
+    }
+]
+```
+a strategy can be interpreted as "it takes 'cb' hours to deliver 'sl' of 'spnm' from 'cknm' to 'qynm'"
+
+
+
+the objective function is to minimize the total cost of all strategies and the cost of a strategy is 'cb'
+
+a strategy is valid if 
+1. the sum of 'sl' of strategies of the same 'ddnm' is equal or greater than the 'sl' of the order of that 'ddnm'
+2.  the sum of 'sl' of strategies of the same 'cknm' and 'spnm' is equal or less than the 'xyl' of the warehouse of that 'cknm' and 'spnm'.
+3.  the time interval between 'ksbysj' and 'jsbysj' is not overlapped with any other strategies of the same 'cknm'
+
+note that the 'ksbysj' and 'jsbysj' of a strategy is calculated by the following rules:  ksbysj = zwdpwcsj - ztpsj, jsbysj = zwdpwcsj-yscb, where yscb is strategy['cb'] and ztpsj is obtained by calling get_warehouse_inventory: ztpsj= get_total_dispatch_cost(spnm, ckdata.get("cknm"), jd, wd, sl, lg). note that spnm, cknm, jd, wd, sl, lg are all from that strategy
