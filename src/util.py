@@ -105,6 +105,24 @@ def get_warehouse_inventory(spnm, zwkssj):
     ignore zwkssj since this function is only called once when initializing the warehouse inventory
     """
     url = ckylcxByUTC_URL
+    from datetime import datetime
+
+    # suppose zwkssj is of datetime type, for instance:
+    # zwkssj = datetime.now()
+
+    # check if zwkssj is of datetime type
+    if isinstance(zwkssj, datetime):
+        zwkssj = zwkssj.strftime("%Y-%m-%dT%H:%M:%S")
+
+    payload = {
+        "spxqxx": [
+            {
+                "spnm": spnm,
+                "zwkssj": zwkssj
+            }
+        ]
+    }
+
     payload = {
         "spxqxx": [
             {
@@ -148,10 +166,13 @@ def get_all_warehouses_xyl(strategies, zwkssj):
             warehouse_inventory = get_warehouse_inventory(spnm, zwkssj)
             if warehouse_inventory is not None:  # Ensure valid response
                 # Update the overall dictionary with the warehouse inventory
-                all_warehouses_xyl.update(warehouse_inventory)
+                for warehouse, xyl in warehouse_inventory.items():
+                    if warehouse in all_warehouses_xyl:
+                        all_warehouses_xyl[warehouse][spnm] = xyl
+                    else:
+                        all_warehouses_xyl[warehouse] = {spnm: xyl}
     return all_warehouses_xyl
 
- 
 
 
 import json

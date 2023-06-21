@@ -11,6 +11,17 @@
             "cwd": "${workspaceFolder}/src"
         },
         {
+            "name": "Python: Run Optimizer",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/optimizer.py",
+            "console": "integratedTerminal",
+            "env": {"PYTHONPATH": "${workspaceFolder}/src"},
+            "cwd": "${workspaceFolder}/src",
+            "args": ["-i", "0"]
+        }
+,        
+        {
             "name": "Python: Flask",
             "type": "python",
             "request": "launch",

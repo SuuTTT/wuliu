@@ -73,13 +73,46 @@
     ```
 ## 测试项目
 
-1. 运行 `api_mock.py` 文件, 该文件会启动一个本地服务器, 模拟2个查询接口：
+1. 首先，运行 `api_mock.py` 来启模拟的本地服务器：
 
-    ```bash
-    python api_mock.py
-    ```
-2. 运行 `api_test.py` 文件, 该文件会使用样例发起请求。
+   ```bash
+   python api_mock.py
+   ```
 
-    ```bash
-    python api_test.py
-    ```
+2. 然后，您有两个并列的选项：
+   
+   a) 运行 `api_test.py` 来测试模拟的API：
+
+   ```bash
+   python api_test.py
+   ```
+
+   b) 或者运行 `optimizer.py` 来进行优化操作，这是更推荐的测试方法：
+
+   ```bash
+   python optimizer.py
+   ```
+
+当您运行 `optimizer.py` 时，应当会看到一个类似于下面的输出，显示了各个仓库的商品编码、需求量、搬运时间以及成本的优化结果.
+note that you can change debug_output(orders, solution, language='zh') to debug_output(orders, solution, language='en') to get the output in English.
+
+```bash
+输出：
+订单  需求量
+    1          5
+    6         14
+
+仓库  时间段
+WH1  [('06-28T17:00:00', '06-28T22:00:00'), ('06-29T14:01:00', '06-29T22:01:00')]
+WH2  [('06-29T16:01:00', '06-29T23:01:00')]
+
+仓库  商品编码  需求量  开始搬运时间  结束搬运时间  成本
+WH1           AUX          5  06-28T17:00:00  06-28T22:00:00    7.0
+WH1             B        8.0  06-29T14:01:00  06-29T22:01:00   10.0
+WH2             B        6.0  06-29T16:01:00  06-29T23:01:00    8.0
+
+仓库        商品编码          需求量         开始搬运时间                结束搬运时间                成本        
+WH1       AUX                    5  06-28T17:00:00  06-28T22:00:00        7.00
+WH1       B                    8.0  06-29T14:01:00  06-29T22:01:00       10.00
+WH2       B                    6.0  06-29T16:01:00  06-29T23:01:00        8.00
+```     

@@ -36,6 +36,7 @@ def mock_ckylcxByUTC():
                 ],
                 "spnm": "AUX"
             }
+
         ]
     })
     # 这里返回模拟数据，模拟仓库库存信息
