@@ -99,6 +99,8 @@ def orders_to_strategies(orders):
    
 def get_warehouse_inventory(spnm, zwkssj):
     """
+    spnm: 商品内码
+    zwkssj(str): 最晚开始时间(yyyy-mm-ddThh:mm:ss)
     return a dictionary of {warehouse:inventory} for a specific product
     ignore zwkssj since this function is only called once when initializing the warehouse inventory
     """

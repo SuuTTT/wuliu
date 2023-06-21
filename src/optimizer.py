@@ -17,9 +17,10 @@ def get_warehouse_capacity(cknm, spnm,zwkssj):
     Args:
     cknm (str): The warehouse ID.
     spnm (str): The product ID.
+    zwkssj (str): The start time of the warehouse. not datetime type.
 
     Returns:
-    int: The available capacity of the warehouse for the product. Returns None if the warehouse or product doesn't exist.
+    int: The available capacity of the warehouse list for the product. Returns None if the warehouse or product doesn't exist.
     """
     # Use the current date/time as the warehouse start time.
     
@@ -141,6 +142,14 @@ def neighbor(state,ckdata_for_order):
 
     return new_state
 
+def acceptance_probability(old_cost, new_cost, temperature):
+    # If the new cost is lower, always accept it.
+    if new_cost < old_cost:
+        return 1
+
+    # If the new cost is higher, accept it with a probability that decreases as the difference between the new cost and the old cost increases, and as the temperature decreases.
+    return math.exp((old_cost - new_cost) / temperature)
+
 def is_valid(state,sl_for_order):
     """
     Check the validity of a state.
@@ -187,13 +196,6 @@ def is_valid(state,sl_for_order):
     # If none of the constraints is violated, the state is valid.
     return True
 
-def acceptance_probability(old_cost, new_cost, temperature):
-    # If the new cost is lower, always accept it.
-    if new_cost < old_cost:
-        return 1
-
-    # If the new cost is higher, accept it with a probability that decreases as the difference between the new cost and the old cost increases, and as the temperature decreases.
-    return math.exp((old_cost - new_cost) / temperature)
 
 def simulated_annealing(orders):
     # Set the initial state and temperature.

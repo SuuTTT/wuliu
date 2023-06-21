@@ -10,6 +10,7 @@ app = Flask(__name__)
 
 @app.route("/getZytpcl", methods=['POST'])
 def getZytpcl():
+    
     orders = request.get_json()  # get data from POST request
     #orders = data['orders']
     strategies = []
