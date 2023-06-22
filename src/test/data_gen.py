@@ -41,4 +41,4 @@ def generate_test_data(path, num_orders=10, num_spnms=5, num_warehouses=3):
     with open(filename, 'w') as f:
         json.dump(orders, f, indent=4)
 
-generate_test_data('./data/', num_orders=2, num_spnms=2, num_warehouses=3)
+generate_test_data('./data/', num_orders=4, num_spnms=4, num_warehouses=6)

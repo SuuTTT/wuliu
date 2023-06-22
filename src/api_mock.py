@@ -24,60 +24,13 @@ def mock_ckylcxByUTC():
                         "sjjd": "2023-06-30T00:00:00",
                         "ckkcvos": [
                             {
-                                "cknm": "WH1",
-                                "xyl": 8.0
-                            },
-                            {
-                                "cknm": "WH2",
-                                "xyl": 8.0
-                            }
+                                "cknm": f"WH{i+1}",
+                                "xyl": 10.0 - i
+                            } for i in range(10)
                         ]
                     }
                 ],
                 "spnm": "AUX"
-            }
-
-        ]
-    })
-    # 这里返回模拟数据，模拟仓库库存信息
-    return jsonify({
-        "code": 200, 
-        "data": [
-            {
-                "ckkcsjVOS": [ # 仓库库存时间
-                    {
-                        "sjjd": "2023-06-30T00:00:00",  # 时间节点
-                        "ckkcvos": [
-                            {
-                                "cknm": "WH1",  # 仓库内码
-                                "xyl": 10.0  # 现有量
-                            },
-                            {
-                                "cknm": "WH2",  # 仓库内码
-                                "xyl": 8.0  # 现有量
-                            }
-                        ]
-                    }
-                ],
-                "spnm": "AUX"  # 商品内码
-            },
-            {
-                "ckkcsjVOS": [
-                    {
-                        "sjjd": "2023-06-30T00:00:00",  # 时间节点
-                        "ckkcvos": [
-                            {
-                                "cknm": "WH1",  # 仓库内码
-                                "xyl": 8.0  # 现有量
-                            },
-                            {
-                                "cknm": "WH2",  # 仓库内码
-                                "xyl": 6.0  # 现有量
-                            }
-                        ]
-                    }
-                ],
-                "spnm": "B"  # 商品内码
             }
         ]
     })

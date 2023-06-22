@@ -10,6 +10,12 @@ from util import *
 # for item in strategies:
 #     print(item.get("ddnm"), item.get("cknm"), item.get("sl"))
 
+def conflict_exists(existing_strategies, new_strategy):
+    for strategy in existing_strategies:
+        if not(strategy["ksbysj"] > new_strategy["jsbysj"] or
+               strategy["jsbysj"] < new_strategy["ksbysj"]):
+            return True
+    return False
 
 
 def get_warehouse_capacity(cknm, spnm,zwkssj):
@@ -38,10 +44,10 @@ def get_warehouse_capacity(cknm, spnm,zwkssj):
 
 def initial_state(orders):
     strategies = []
-    #return a dict to implement get_ckdata_for_order(ddnm)
-    ckdata_for_order={}
-    sl_for_order={}
-    warehouse_stock = {} # Create a new dictionary to hold the current stock of each warehouse
+    ckdata_for_order = {}
+    sl_for_order = {}
+    strategies_by_cknm = collections.defaultdict(list)
+
     for item in orders['Spdd']:
         ddnm = item.get("ddnm")
         qynm = item.get("qynm")
@@ -51,10 +57,11 @@ def initial_state(orders):
         jd = item.get("jd")
         wd = item.get("wd")
         zwdpwcsj = parse_date(item.get("zwdpwcsj"))
-        
+
         ckdata_list = item.get("ckdata", [])
-        ckdata_for_order[ddnm]=ckdata_list
-        sl_for_order[ddnm]=total_sl
+        ckdata_for_order[ddnm] = ckdata_list
+        sl_for_order[ddnm] = total_sl
+
         for ckdata in ckdata_list:
             strategy_item = {}
             strategy_item["ddnm"] = ddnm
@@ -65,16 +72,15 @@ def initial_state(orders):
             strategy_item["cknm"] = cknm
             strategy_item["jd"] = jd
             strategy_item["wd"] = wd
-            
+
             warehouse_capacity = get_warehouse_capacity(cknm, spnm, item.get("zwdpwcsj"))
-            warehouse_stock[cknm] = warehouse_capacity # Initialize the stock of the warehouse
-            # If the warehouse's capacity is greater than or equal to the total order quantity, allocate the total quantity from this warehouse. Otherwise, allocate as much as possible from this warehouse.
-            sl = min(warehouse_stock[cknm], total_sl)
+
+            # If the warehouse's capacity is less than the total order quantity, allocate as much as possible from this warehouse.
+            sl = min(warehouse_capacity, total_sl)
             strategy_item["sl"] = sl
             total_sl -= sl
-            warehouse_stock[cknm] -= sl # Update the stock of the warehouse after the dispatch
 
-            #calculate yscb, ksbysj, jsbysj and cb
+            # calculate yscb, ksbysj, jsbysj and cb
             yscb = timedelta(hours=ckdata.get("yscb"))
             jsbysj = zwdpwcsj - yscb
             ztpsj = timedelta(hours=get_total_dispatch_cost(spnm, cknm, jd, wd, sl, lg))
@@ -86,15 +92,16 @@ def initial_state(orders):
             strategy_item["cb"] = ztpsj
             strategy_item["lg"] = lg
 
-            strategies.append(strategy_item)
+            # Check for time conflicts with existing strategies for this warehouse.
+            if not conflict_exists(strategies_by_cknm[cknm], strategy_item):
+                strategies_by_cknm[cknm].append(strategy_item)
+                strategies.append(strategy_item)
 
             # Break the loop if the total order quantity has been allocated.
             if total_sl <= 0:
                 break
 
     return strategies, ckdata_for_order, sl_for_order
-
-#print(init_strategy)
 
 def cost(state):
     """
@@ -111,16 +118,9 @@ def cost(state):
 
 from copy import deepcopy
 
+
+
 def neighbor(state, ckdata_for_order):
-    """
-    Generate a new state from the current one by changing some strategies.
-
-    Args:
-    state (list): A list of strategies, each represented as a dictionary.
-
-    Returns:
-    list: A new state obtained by changing some strategies.
-    """
     # First, make a copy of the current state so we don't modify the original state.
     new_state = deepcopy(state)
 
@@ -136,11 +136,20 @@ def neighbor(state, ckdata_for_order):
     # Randomly select a new warehouse, different from the current one.
     new_warehouse = None
     for _ in range(10):  # try 10 times
-        potential_warehouse = random.choice([ckdata for ckdata in ckdata_list if ckdata.get("cknm") != strategy_to_change["cknm"]])
+        potential_warehouse = random.choice([ckdata for ckdata in ckdata_list 
+                                             if ckdata.get("cknm") !=
+                                               strategy_to_change["cknm"]])
         # Check the stock for the specific product in the warehouse
-        if all_warehouses_xyl.get(potential_warehouse["cknm"], {}).get(strategy_to_change["spnm"], 0) >= strategy_to_change["sl"]:
-            new_warehouse = potential_warehouse
-            break
+        if all_warehouses_xyl.get(potential_warehouse["cknm"], 
+                                  {}).get(strategy_to_change["spnm"],
+                                           0) >= strategy_to_change["sl"]:
+            potential_strategy = strategy_to_change.copy()
+            potential_strategy["cknm"] = potential_warehouse.get("cknm")
+            # If there's no time conflict, use this warehouse
+            if not conflict_exists([strategy for strategy in new_state if strategy["cknm"]
+                                     == potential_strategy["cknm"]], potential_strategy):
+                new_warehouse = potential_warehouse
+                break
 
     if new_warehouse is None:  # if no suitable warehouse is found, return the current state
         return state
@@ -150,7 +159,10 @@ def neighbor(state, ckdata_for_order):
 
     # Recalculate 'ksbysj', 'jsbysj', and 'cb'.
     yscb = timedelta(hours=new_warehouse.get("yscb"))
-    ztpsj = timedelta(hours=get_total_dispatch_cost(strategy_to_change["spnm"], new_warehouse.get("cknm"), strategy_to_change["jd"], strategy_to_change["wd"], strategy_to_change["sl"], strategy_to_change["lg"]))
+    ztpsj = timedelta(hours=get_total_dispatch_cost(
+        strategy_to_change["spnm"], new_warehouse.get("cknm"),
+        strategy_to_change["jd"], strategy_to_change["wd"], strategy_to_change["sl"], 
+        strategy_to_change["lg"]))
 
     strategy_to_change["ksbysj"] = strategy_to_change["xqsj"] - ztpsj
     strategy_to_change["jsbysj"] = strategy_to_change["xqsj"] - yscb
@@ -325,7 +337,7 @@ def check_constraints(state, sl_for_order, language='en'):
     if violations:
         return f"{violated_label}:\n" + "\n".join(violations)
     else:
-        return "Test suceeded, No constraints violated."
+        return "Test suceeded, No other constraints violated."
 
 
 
@@ -343,6 +355,7 @@ def debug_output(orders, solution, sl_for_order, language='en'):
         end_time_label = "End Moving Time"
         cost_label = "Cost"
         inventory_label = "Inventory"
+        unserviced_label = "Unserviced Orders"
     else:  # Default to Chinese.
         order_label = "订单"
         quantity_label = "需求量"
@@ -353,11 +366,15 @@ def debug_output(orders, solution, sl_for_order, language='en'):
         end_time_label = "结束搬运时间"
         cost_label = "成本"
         inventory_label = "库存"
+        unserviced_label = "未完成的订单（出库时间冲突）"
     
-    # Get the order demands.
+    # Get the order demands and store them in a set.
     print(f"{order_label:6}  {quantity_label:10}")
+    order_codes = set()
     for order in orders['Spdd']:
-        print(f"{order['ddnm']:6}  {order['sl']:10}")
+        order_code = order['ddnm']
+        order_codes.add(order_code)
+        print(f"{order_code:6}  {order['sl']:10}")
 
     # Get the warehouse usage intervals and inventory.
     zwkssj=orders['Spdd'][0]['zwdpwcsj']
@@ -378,10 +395,30 @@ def debug_output(orders, solution, sl_for_order, language='en'):
         print(f"{warehouse:8}  {intervals_str}  {xyl_str}")
 
     # Get the solution details.
-    print(f"\n{warehouse_label:8}  {product_code_label:12}  {quantity_label:10}  {start_time_label:20}  {end_time_label:20}  {cost_label:10}")
+    print(
+        f"\n{warehouse_label:8} {order_label:6}"
+        f" {product_code_label:12} {quantity_label:10}"
+        f" {start_time_label:20} {end_time_label:20}"
+        f" {cost_label:10}"
+    )
     for strategy in solution:
-        print(f"{strategy['cknm']:8}  {strategy['spnm']:12}  {strategy['sl']:10}  {strategy['ksbysj'][5:]}  {strategy['jsbysj'][5:]}  {strategy['cb']:10.2f}")
+        print(
+            f"{strategy['cknm']:8} {strategy['ddnm']:6}"
+            f" {strategy['spnm']:12} {strategy['sl']:10}"
+            f" {strategy['ksbysj'][5:]} {strategy['jsbysj'][5:]}"
+            f" {strategy['cb']:10.2f}"
+        )
+
+    # Also collect the order codes from the solution.
+    solution_order_codes = {strategy['ddnm'] for strategy in solution}
+    unserviced_orders = order_codes - solution_order_codes
+    if unserviced_orders:
+        print("\n" + unserviced_label + ":")
+        for order_code in unserviced_orders:
+            print(order_code)
+
     print(check_constraints(solution, sl_for_order, language))
+
 
 def main(file_index):
     file_path = os.path.join('./test/data/', f'orders_data_{file_index}.json')

@@ -1,0 +1,622 @@
+
+--- a/src/api.py
++++ b/src/api.py
+@@ -10,6 +10,7 @@ app = Flask(__name__)
+ 
+ @app.route("/getZytpcl", methods=['POST'])
+ def getZytpcl():
++    
+     orders = request.get_json()  # get data from POST request
+     #orders = data['orders']
+     strategies = []
+diff --git a/src/api_mock.py b/src/api_mock.py
+index 0f2347b..1a37cb0 100644
+--- a/src/api_mock.py
++++ b/src/api_mock.py
+@@ -36,6 +36,7 @@ def mock_ckylcxByUTC():
+                 ],
+                 "spnm": "AUX"
+             }
++
+         ]
+     })
+     # 这里返回模拟数据，模拟仓库库存信息
+diff --git a/src/app.py b/src/app.py
+deleted file mode 100644
+index c33c2c0..0000000
+--- a/src/app.py
++++ /dev/null
+@@ -1,79 +0,0 @@
+-from flask import Flask, request,jsonify
+-from optimizer import simulated_annealing
+-from util import *
+-from flask import Flask, request, jsonify
+-app = Flask(__name__)
+-
+-@app.route("/getZytpcl", methods=['POST'])
+-def getZytpcl():
+-    #try:
+-        # 从请求中获取订单数据
+-        Spdd = request.json['Spdd']
+-        
+-        # 初始化最优解列表
+-        optimized_solution = []
+-
+-        # 设置模拟退火算法的参数
+-        config=load_config()
+-        
+-        params = config['SimulatedAnnealing']
+-
+-        # 模拟退火算法参数
+-        T_initial = int(params['T_initial'])
+-        T_final = int(params['T_final'])
+-        alpha = float(params['alpha'])
+-        max_iter = int(params['max_iter'])
+-
+-
+-        # 对每个订单进行处理
+-        for order in Spdd:
+-            # 获取订单详情
+-            ddnm = order['ddnm']
+-            qynm = order['qynm']
+-            spnm = order['spnm']
+-            sl = order['sl']
+-            lg = order['lg']
+-            zwdpwcsj = order['zwdpwcsj']
+-            ckdata = order['ckdata']
+-
+-            # 获取仓库库存信息
+-            warehouse_inventory = get_warehouse_inventory(spnm, zwdpwcsj)
+-            
+-            # 对仓库库存进行处理，计算最优调配策略
+-            for warehouse in warehouse_inventory['data']:
+-                for ck in ckdata:
+-                    if warehouse['cknm'] == ck['cknm']:
+-                        dispatch_cost_info = get_total_dispatch_cost(spnm, ck['cknm'], ck['jd'], ck['wd'], sl, lg)
+-                        cb = dispatch_cost_info['data']['zcb']  # 获取总成本
+-                        ksbysj = dispatch_cost_info['data']['ksbysj']  # 开始搬运时间
+-                        jsbysj = dispatch_cost_info['data']['jsbysj']  # 结束搬运时间
+-                        jd = ck['jd']
+-                        wd = ck['wd']
+-                        sl = warehouse['kykcl']  # 仓库库存量
+-                        
+-                        # 记录调配策略
+-                        dispatch_policy = {
+-                            'cknm': ck['cknm'],
+-                            'qynm': qynm,
+-                            'spnm': spnm,
+-                            'xqsj': zwdpwcsj,
+-                            'ksbysj': ksbysj,
+-                            'jsbysj': jsbysj,
+-                            'cb': cb,
+-                            'sl': sl,
+-                            'lg': lg,
+-                            'jd': jd,
+-                            'wd': wd,
+-                            'ddnm': ddnm,
+-                        }
+-                        optimized_solution.append(dispatch_policy)
+-        # 返回最优调配策略
+-        return jsonify({"code": 200, "data": optimized_solution})
+-    
+-    # except Exception as e:
+-    #     # 使用指定的错误返回格式
+-    #     return jsonify({"code": -1, "data": {}, "message": str(e)})
+-
+-
+-if __name__ == "__main__":
+-    app.run(host='0.0.0.0', port=8080, debug=True)
+diff --git a/src/optimizer.py b/src/optimizer.py
+index 7da2be8..116d875 100644
+--- a/src/optimizer.py
++++ b/src/optimizer.py
+@@ -1,4 +1,6 @@
++import argparse
+ import collections
++import os
+ from util import *
+ 
+ 
+@@ -17,9 +19,10 @@ def get_warehouse_capacity(cknm, spnm,zwkssj):
+     Args:
+     cknm (str): The warehouse ID.
+     spnm (str): The product ID.
++    zwkssj (str): The start time of the warehouse. not datetime type.
+ 
+     Returns:
+-    int: The available capacity of the warehouse for the product. Returns None if the warehouse or product doesn't exist.
++    int: The available capacity of the warehouse list for the product. Returns None if the warehouse or product doesn't exist.
+     """
+     # Use the current date/time as the warehouse start time.
+     
+@@ -38,6 +41,7 @@ def initial_state(orders):
+     #return a dict to implement get_ckdata_for_order(ddnm)
+     ckdata_for_order={}
+     sl_for_order={}
++    warehouse_stock = {} # Create a new dictionary to hold the current stock of each warehouse
+     for item in orders['Spdd']:
+         ddnm = item.get("ddnm")
+         qynm = item.get("qynm")
+@@ -63,10 +67,12 @@ def initial_state(orders):
+             strategy_item["wd"] = wd
+             
+             warehouse_capacity = get_warehouse_capacity(cknm, spnm, item.get("zwdpwcsj"))
++            warehouse_stock[cknm] = warehouse_capacity # Initialize the stock of the warehouse
+             # If the warehouse's capacity is greater than or equal to the total order quantity, allocate the total quantity from this warehouse. Otherwise, allocate as much as possible from this warehouse.
+-            sl = min(warehouse_capacity, total_sl)
++            sl = min(warehouse_stock[cknm], total_sl)
+             strategy_item["sl"] = sl
+             total_sl -= sl
++            warehouse_stock[cknm] -= sl # Update the stock of the warehouse after the dispatch
+ 
+             #calculate yscb, ksbysj, jsbysj and cb
+             yscb = timedelta(hours=ckdata.get("yscb"))
+@@ -88,7 +94,6 @@ def initial_state(orders):
+ 
+     return strategies, ckdata_for_order, sl_for_order
+ 
+-
+ #print(init_strategy)
+ 
+ def cost(state):
+@@ -106,7 +111,7 @@ def cost(state):
+ 
+ from copy import deepcopy
+ 
+-def neighbor(state,ckdata_for_order):
++def neighbor(state, ckdata_for_order):
+     """
+     Generate a new state from the current one by changing some strategies.
+ 
+@@ -121,12 +126,24 @@ def neighbor(state,ckdata_for_order):
+ 
+     # Randomly select a strategy to change.
+     strategy_to_change = random.choice(new_state)
+-    
++
+     # Get the 'ckdata' for the order corresponding to this strategy.
+     ckdata_list = ckdata_for_order[strategy_to_change["ddnm"]]
+-    
++
++    # Get the warehouse stock for the current solution
++    all_warehouses_xyl = get_all_warehouses_xyl(new_state, strategy_to_change["xqsj"])
++
+     # Randomly select a new warehouse, different from the current one.
+-    new_warehouse = random.choice([ckdata for ckdata in ckdata_list if ckdata.get("cknm") != strategy_to_change["cknm"]])
++    new_warehouse = None
++    for _ in range(10):  # try 10 times
++        potential_warehouse = random.choice([ckdata for ckdata in ckdata_list if ckdata.get("cknm") != strategy_to_change["cknm"]])
++        # Check the stock for the specific product in the warehouse
++        if all_warehouses_xyl.get(potential_warehouse["cknm"], {}).get(strategy_to_change["spnm"], 0) >= strategy_to_change["sl"]:
++            new_warehouse = potential_warehouse
++            break
++
++    if new_warehouse is None:  # if no suitable warehouse is found, return the current state
++        return state
+ 
+     # Update the strategy with the new warehouse's details.
+     strategy_to_change["cknm"] = new_warehouse.get("cknm")
+@@ -134,13 +151,21 @@ def neighbor(state,ckdata_for_order):
+     # Recalculate 'ksbysj', 'jsbysj', and 'cb'.
+     yscb = timedelta(hours=new_warehouse.get("yscb"))
+     ztpsj = timedelta(hours=get_total_dispatch_cost(strategy_to_change["spnm"], new_warehouse.get("cknm"), strategy_to_change["jd"], strategy_to_change["wd"], strategy_to_change["sl"], strategy_to_change["lg"]))
+-    
++
+     strategy_to_change["ksbysj"] = strategy_to_change["xqsj"] - ztpsj
+     strategy_to_change["jsbysj"] = strategy_to_change["xqsj"] - yscb
+     strategy_to_change["cb"] = ztpsj
+ 
+     return new_state
+ 
++def acceptance_probability(old_cost, new_cost, temperature):
++    # If the new cost is lower, always accept it.
++    if new_cost < old_cost:
++        return 1
++
++    # If the new cost is higher, accept it with a probability that decreases as the difference between the new cost and the old cost increases, and as the temperature decreases.
++    return math.exp((old_cost - new_cost) / temperature)
++
+ def is_valid(state,sl_for_order):
+     """
+     Check the validity of a state.
+@@ -187,13 +212,6 @@ def is_valid(state,sl_for_order):
+     # If none of the constraints is violated, the state is valid.
+     return True
+ 
+-def acceptance_probability(old_cost, new_cost, temperature):
+-    # If the new cost is lower, always accept it.
+-    if new_cost < old_cost:
+-        return 1
+-
+-    # If the new cost is higher, accept it with a probability that decreases as the difference between the new cost and the old cost increases, and as the temperature decreases.
+-    return math.exp((old_cost - new_cost) / temperature)
+ 
+ def simulated_annealing(orders):
+     # Set the initial state and temperature.
+@@ -203,6 +221,9 @@ def simulated_annealing(orders):
+     max_attempts = 100  # Set a maximum limit for attempts.
+ 
+     attempts = 0  # Initialize the counter for attempts.
++    
++    best_state = state
++    best_cost = cost(state)
+ 
+     while temperature > 0.01:
+         new_state = neighbor(state, ckdata_for_order)
+@@ -217,16 +238,24 @@ def simulated_annealing(orders):
+         old_cost = cost(state)
+         new_cost = cost(new_state)
+ 
++        if new_cost < best_cost:  # Store the new state if it has a lower cost.
++            best_state = new_state
++            best_cost = new_cost
++
+         if acceptance_probability(old_cost, new_cost, temperature) > random.random():
+             state = new_state
+ 
+         # Decrease the temperature.
+         temperature *= 1 - cooling_rate
+-    if is_valid(state, sl_for_order):
+-        return state
++
++    if is_valid(best_state, sl_for_order):
++        return best_state,sl_for_order
+     else:
+-        return None
++        return best_state,sl_for_order  # If no valid state was found, return the state with the smallest cost.
+ 
++### below are debug functions ###
++#############################################################################################################
++#############################################################################################################
+ def format_solution(solution):
+     formatted_solution = []
+     for strategy in solution:
+@@ -238,9 +267,132 @@ def format_solution(solution):
+         formatted_solution.append(formatted_strategy)
+     return formatted_solution
+ 
+-if __name__ == '__main__':
+-    orders = read_orders_from_file('orders_data.json')
+-    strategies=[]
+-    solution=simulated_annealing(orders)
++def check_constraints(state, sl_for_order, language='en'):
++    # Set up language-specific labels.
++    if language == 'en':
++        violated_label = "Violated Constraints"
++        order_label = "Order"
++        insufficient_label = "Insufficient quantity"
++        warehouse_label = "Warehouse"
++        product_code_label = "Product Code"
++        exceeding_label = "Exceeding warehouse capacity"
++        overlap_label = "Overlapping time intervals"
++    else:  # Default to Chinese.
++        violated_label = "违反的约束"
++        order_label = "订单"
++        insufficient_label = "需求量不足"
++        warehouse_label = "仓库"
++        product_code_label = "商品编码"
++        exceeding_label = "超过仓库容量"
++        overlap_label = "时间段重叠"
++
++    violations = []
++
++    # Group the strategies by 'ddnm', 'cknm' and 'spnm'.
++    strategies_by_ddnm = collections.defaultdict(list)
++    strategies_by_cknm_spnm = collections.defaultdict(list)
++    strategies_by_cknm = collections.defaultdict(list)
++    
++    for strategy in state:
++        strategies_by_ddnm[strategy["ddnm"]].append(strategy)
++        strategies_by_cknm_spnm[(strategy["cknm"], strategy["spnm"])].append(strategy)
++        strategies_by_cknm[strategy["cknm"]].append(strategy)
++
++    # Check the first constraint.
++    for ddnm, strategies in strategies_by_ddnm.items():
++        total_sl = sum(strategy["sl"] for strategy in strategies)
++        # If the sum of 'sl' for a specific 'ddnm' is less than the 'sl' of the order, add a violation.
++        if total_sl < sl_for_order[ddnm]:
++            violations.append(f"{order_label} {ddnm}: {insufficient_label}")
++
++    # Check the second constraint.
++    for (cknm, spnm), strategies in strategies_by_cknm_spnm.items():
++        total_sl = sum(strategy["sl"] for strategy in strategies)
++        # If the sum of 'sl' for a specific 'cknm' and 'spnm' is greater than the 'xyl' of the warehouse, add a violation.
++        if total_sl > get_warehouse_capacity(cknm, spnm, strategies[0]["xqsj"]):
++            violations.append(f"{warehouse_label} {cknm}, {product_code_label} {spnm}: {exceeding_label}")
++
++    # Check the third constraint.
++    for cknm, strategies in strategies_by_cknm.items():
++        # Sort the strategies by 'ksbysj'.
++        strategies.sort(key=lambda strategy: strategy["ksbysj"])
++        # If any two adjacent strategies have overlapping time intervals, add a violation.
++        for i in range(len(strategies) - 1):
++            if strategies[i]["jsbysj"] > strategies[i + 1]["ksbysj"]:
++                violations.append(f"{warehouse_label} {cknm}: {overlap_label}")
++
++    # Return the violations as a string.
++    if violations:
++        return f"{violated_label}:\n" + "\n".join(violations)
++    else:
++        return "Test suceeded, No constraints violated."
++
++
++
++
++
++def debug_output(orders, solution, sl_for_order, language='en'):
++    # Set up language-specific labels.
++    if language == 'en':
++        order_label = "Order"
++        quantity_label = "Quantity"
++        warehouse_label = "Warehouse"
++        intervals_label = "Intervals"
++        product_code_label = "Product Code"
++        start_time_label = "Start Moving Time"
++        end_time_label = "End Moving Time"
++        cost_label = "Cost"
++        inventory_label = "Inventory"
++    else:  # Default to Chinese.
++        order_label = "订单"
++        quantity_label = "需求量"
++        warehouse_label = "仓库"
++        intervals_label = "时间段"
++        product_code_label = "商品编码"
++        start_time_label = "开始搬运时间"
++        end_time_label = "结束搬运时间"
++        cost_label = "成本"
++        inventory_label = "库存"
++    
++    # Get the order demands.
++    print(f"{order_label:6}  {quantity_label:10}")
++    for order in orders['Spdd']:
++        print(f"{order['ddnm']:6}  {order['sl']:10}")
++
++    # Get the warehouse usage intervals and inventory.
++    zwkssj=orders['Spdd'][0]['zwdpwcsj']
++    all_warehouses_xyl = get_all_warehouses_xyl(solution, zwkssj)
++
++    print(f"\n{warehouse_label:8}  {intervals_label}  {inventory_label}")
++    warehouse_intervals = collections.defaultdict(list)
++
++    for strategy in solution:
++        warehouse_intervals[strategy['cknm']].append((strategy['ksbysj'][5:], strategy['jsbysj'][5:]))  # Skip the year in the timestamps.
++
++    for warehouse, intervals in warehouse_intervals.items():
++        intervals.sort(key=lambda x: x[0])  # Sort the intervals by start time.
++        intervals_str = ', '.join([f"({start}, {end})" for start, end in intervals])
++        # Fetch the inventory for each spnm in the warehouse
++        warehouse_inventory = all_warehouses_xyl.get(warehouse, {})
++        xyl_str = ', '.join([f"{spnm}: {xyl}" for spnm, xyl in warehouse_inventory.items()])
++        print(f"{warehouse:8}  {intervals_str}  {xyl_str}")
++
++    # Get the solution details.
++    print(f"\n{warehouse_label:8}  {product_code_label:12}  {quantity_label:10}  {start_time_label:20}  {end_time_label:20}  {cost_label:10}")
++    for strategy in solution:
++        print(f"{strategy['cknm']:8}  {strategy['spnm']:12}  {strategy['sl']:10}  {strategy['ksbysj'][5:]}  {strategy['jsbysj'][5:]}  {strategy['cb']:10.2f}")
++    print(check_constraints(solution, sl_for_order, language))
++
++def main(file_index):
++    file_path = os.path.join('./test/data/', f'orders_data_{file_index}.json')
++    orders = read_orders_from_file(file_path)
++    solution, sl_for_order = simulated_annealing(orders)
+     solution = format_solution(solution)
+-    print(solution)
+\ No newline at end of file
++    debug_output(orders, solution, sl_for_order, language='zh')  # Set the language as 'zh' for Chinese or 'en' for English.
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser(description='Run the optimizer with specified file index.')
++    parser.add_argument('-i', type=int, required=True, help='The index of the data file to use')
++    args = parser.parse_args()
++    main(args.i)
+\ No newline at end of file
+diff --git a/src/test/data/orders_data_0.json b/src/test/data/orders_data_0.json
+new file mode 100644
+index 0000000..56f4b9a
+--- /dev/null
++++ b/src/test/data/orders_data_0.json
+@@ -0,0 +1,47 @@
++{"Spdd":[
++    {
++        "ddnm": "1",
++        "qynm": "123",
++        "spnm": "AUX",
++        "sl": 16,
++        "lg": "个",
++        "zwdpwcsj": "2023-06-30T00:00:00",
++        "jd": 39.913818,
++        "wd": 116.363625,
++        "ckdata": [
++           {
++              "cknm":"WH1",
++              "pfwhnm":"BOX1",
++              "yscb": 2.0
++           },
++           {
++              "cknm":"WH2",
++              "pfwhnm":"BOX2",
++              "yscb": 1.0
++           }
++        ]
++     },      {
++        "ddnm": "6",
++        "qynm": "678",
++        "spnm": "B",
++        "sl": 16,
++        "lg": "个",
++        "zwdpwcsj": "2023-06-30T00:01:00",
++        "jd": 39.913818,
++        "wd": 116.363625,
++        "ckdata": [
++           {
++              "cknm":"WH1",
++              "pfwhnm":"BOX1",
++              "yscb": 2.0
++           },
++           {
++              "cknm":"WH2",
++              "pfwhnm":"BOX2",
++              "yscb": 1.0
++           }
++        ]
++     }
++  
++   ]
++}
+diff --git a/src/test/data/orders_data_1.json b/src/test/data/orders_data_1.json
+new file mode 100644
+index 0000000..8bcea62
+--- /dev/null
++++ b/src/test/data/orders_data_1.json
+@@ -0,0 +1,48 @@
++{
++    "Spdd": [
++        {
++            "ddnm": "1",
++            "qynm": "670",
++            "spnm": "AUX1",
++            "sl": 8,
++            "lg": "\u4e2a",
++            "zwdpwcsj": "2023-06-27T00:00:00",
++            "jd": 39.913818,
++            "wd": 116.363625,
++            "ckdata": [
++                {
++                    "cknm": "WH3",
++                    "pfwhnm": "BOX1",
++                    "yscb": 1.9461682156485
++                },
++                {
++                    "cknm": "WH2",
++                    "pfwhnm": "BOX2",
++                    "yscb": 1.076777399471806
++                }
++            ]
++        },
++        {
++            "ddnm": "2",
++            "qynm": "913",
++            "spnm": "AUX1",
++            "sl": 7,
++            "lg": "\u4e2a",
++            "zwdpwcsj": "2023-06-25T00:00:00",
++            "jd": 39.913818,
++            "wd": 116.363625,
++            "ckdata": [
++                {
++                    "cknm": "WH2",
++                    "pfwhnm": "BOX1",
++                    "yscb": 1.5307319883519381
++                },
++                {
++                    "cknm": "WH3",
++                    "pfwhnm": "BOX2",
++                    "yscb": 1.238203074688553
++                }
++            ]
++        }
++    ]
++}
+\ No newline at end of file
+diff --git a/src/test/data_gen.py b/src/test/data_gen.py
+new file mode 100644
+index 0000000..31d0a25
+--- /dev/null
++++ b/src/test/data_gen.py
+@@ -0,0 +1,44 @@
++import json
++import os
++import glob
++import random
++
++def generate_test_data(path, num_orders=10, num_spnms=5, num_warehouses=3):
++    orders = {"Spdd": []}
++    warehouse_names = [f"WH{i+1}" for i in range(num_warehouses)]
++    spnms = [f"AUX{i+1}" for i in range(num_spnms)]
++
++    for i in range(num_orders):
++        order = {
++            "ddnm": str(i + 1),
++            "qynm": str(random.randint(100, 999)),
++            "spnm": random.choice(spnms),
++            "sl": random.randint(1, 10),
++            "lg": "个",
++            "zwdpwcsj": f"2023-06-{random.randint(25, 30)}T00:00:00",
++            "jd": 39.913818,
++            "wd": 116.363625,
++            "ckdata": [
++                {
++                    "cknm": random.choice(warehouse_names),
++                    "pfwhnm": "BOX1",
++                    "yscb": random.uniform(1.0, 2.0)
++                },
++                {
++                    "cknm": random.choice(warehouse_names),
++                    "pfwhnm": "BOX2",
++                    "yscb": random.uniform(1.0, 2.0)
++                }
++            ]
++        }
++        orders["Spdd"].append(order)
++
++    existing_files = glob.glob(os.path.join(path, 'orders_data_*.json'))  
++    max_index = max(int(file.split('_')[-1].split('.')[0]) for file in existing_files) if existing_files else 0
++
++    filename = os.path.join(path, f'orders_data_{max_index+1}.json')
++
++    with open(filename, 'w') as f:
++        json.dump(orders, f, indent=4)
++
++generate_test_data('./data/', num_orders=2, num_spnms=2, num_warehouses=3)
+diff --git a/src/util.py b/src/util.py
+index 954f76b..91d0b8c 100644
+--- a/src/util.py
++++ b/src/util.py
+@@ -99,10 +99,30 @@ def orders_to_strategies(orders):
+    
+ def get_warehouse_inventory(spnm, zwkssj):
+     """
++    spnm: 商品内码
++    zwkssj(str): 最晚开始时间(yyyy-mm-ddThh:mm:ss)
+     return a dictionary of {warehouse:inventory} for a specific product
+     ignore zwkssj since this function is only called once when initializing the warehouse inventory
+     """
+     url = ckylcxByUTC_URL
++    from datetime import datetime
++
++    # suppose zwkssj is of datetime type, for instance:
++    # zwkssj = datetime.now()
++
++    # check if zwkssj is of datetime type
++    if isinstance(zwkssj, datetime):
++        zwkssj = zwkssj.strftime("%Y-%m-%dT%H:%M:%S")
++
++    payload = {
++        "spxqxx": [
++            {
++                "spnm": spnm,
++                "zwkssj": zwkssj
++            }
++        ]
++    }
++
+     payload = {
+         "spxqxx": [
+             {
+@@ -146,10 +166,13 @@ def get_all_warehouses_xyl(strategies, zwkssj):
+             warehouse_inventory = get_warehouse_inventory(spnm, zwkssj)
+             if warehouse_inventory is not None:  # Ensure valid response
+                 # Update the overall dictionary with the warehouse inventory
+-                all_warehouses_xyl.update(warehouse_inventory)
++                for warehouse, xyl in warehouse_inventory.items():
++                    if warehouse in all_warehouses_xyl:
++                        all_warehouses_xyl[warehouse][spnm] = xyl
++                    else:
++                        all_warehouses_xyl[warehouse] = {spnm: xyl}
+     return all_warehouses_xyl
+ 
+- 
+ 
+ 
+ import json

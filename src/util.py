@@ -122,15 +122,7 @@ def get_warehouse_inventory(spnm, zwkssj):
             }
         ]
     }
-
-    payload = {
-        "spxqxx": [
-            {
-                "spnm": spnm,
-                "zwkssj": zwkssj
-            }
-        ]
-    }
+ 
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     if response.status_code == 200:
