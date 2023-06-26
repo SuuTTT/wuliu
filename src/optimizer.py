@@ -198,21 +198,21 @@ def is_valid(state,sl_for_order):
         strategies_by_cknm_spnm[(strategy["cknm"], strategy["spnm"])].append(strategy)
         strategies_by_cknm[strategy["cknm"]].append(strategy)
 
-    # Check the first constraint.
+    # Check the first constraint. 满足所有订单
     for ddnm, strategies in strategies_by_ddnm.items():
         total_sl = sum(strategy["sl"] for strategy in strategies)
         # If the sum of 'sl' for a specific 'ddnm' is less than the 'sl' of the order, return False.
         if total_sl < sl_for_order[ddnm]:
             return False
 
-    # Check the second constraint.
+    # Check the second constraint. 库存约束
     for (cknm, spnm), strategies in strategies_by_cknm_spnm.items():
         total_sl = sum(strategy["sl"] for strategy in strategies)
         # If the sum of 'sl' for a specific 'cknm' and 'spnm' is greater than the 'xyl' of the warehouse, return False.
         if total_sl > get_warehouse_capacity(cknm, spnm, strategies[0]["xqsj"].isoformat()):
             return False
 
-    # Check the third constraint.
+    # Check the third constraint. 出库的时间约束
     for cknm, strategies in strategies_by_cknm.items():
         # Sort the strategies by 'ksbysj'.
         strategies.sort(key=lambda strategy: strategy["ksbysj"])
