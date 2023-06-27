@@ -1,0 +1,36 @@
+\documentclass{beamer}
+
+\begin{document}
+
+\begin{frame}
+\frametitle{需求文档}
+\tableofcontents
+\end{frame}
+
+\section{业务描述和需求}
+\subsection{需求概述}
+\begin{frame}
+    \frametitle{需求概述}
+    本需求的核心目标是为物流系统实现一个最优调配策略算法。给定输入的订单列表，在知道库存信息和运输成本的情况下，算法能输出最优的调配策略列表。优化目标是在满足既定约束的条件下，最大限度地降低总成本，同时提高订单的满足率。
+\end{frame}
+
+\subsection{需求的输入数据}
+\begin{frame}
+    \frametitle{需求的输入数据}
+    - 订单列表：通过调用接口（getZytpcl）输入给算法。订单信息包括订单号、商品内码、需求数量、最晚商品调配完成时间、订单的仓库列表（包括仓库编号、仓库库存、运输时间）。
+    - 库存和运输成本：这些信息是通过调用接口/queryYscb /ckylcxByUTC得到的。
+\end{frame}
+
+\subsection{需求的输出数据}
+\begin{frame}
+    \frametitle{需求的输出数据}
+    - 最优调配策略。具体的输入输出格式，详见接口描述部分。
+\end{frame}
+
+\subsection{时间约束和其他约束}
+\begin{frame}
+    \frametitle{时间约束和其他约束}
+    - 满足所有订单：订单收到的商品总量大于等于其请求的
+
+
+\end{document}
