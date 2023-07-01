@@ -122,6 +122,10 @@ def logistics_distribution(A1, A2, A3, W1, W2):
 
 现在，你应该可以在你的 `wuliu` 环境中运行你的项目源代码。如果你的项目中有 `main.py` 文件，你可以通过运行 `python main.py` 来启动你的项目。
 
+---
+:warning: **DEPRECATED**: The following information is no longer up-to-date or has been superseded by other information. It is kept here for reference only. we will update this section after the project is completed in 07/05.
+
+~~~
 ## 运行项目(for 开发人员&运维人员)
 
 1. 激活 `wuliu` 环境：
@@ -183,4 +187,5 @@ WH2             B        6.0  06-29T16:01:00  06-29T23:01:00    8.0
 WH1       AUX                    5  06-28T17:00:00  06-28T22:00:00        7.00
 WH1       B                    8.0  06-29T14:01:00  06-29T22:01:00       10.00
 WH2       B                    6.0  06-29T16:01:00  06-29T23:01:00        8.00
-```     
+```  
+~~~
