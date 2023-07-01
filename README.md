@@ -1,4 +1,72 @@
-## 环境配置
+# README
+
+## 项目简介(for 项目经理)
+这是一个仓储物流优化项目，旨在利用优化算法来解决复杂的物流分配问题。给定一系列的订单需求、仓库存货、以及物流运输时间，我们的目标是找到一个最优的分配计划，以使得满足订单需求的同时，最大化总体满意度并最小化最大的运输时间。
+
+项目使用Python语言进行开发，依赖于numpy库进行矩阵计算。
+
+## 项目结构(for 开发人员)
+
+### 主目录:
+- `README.md`: 项目的基本介绍和使用指南。
+- `requirement.txt`: Python环境依赖文件。
+- `doc`: 文档目录，包含项目的设计、需求、测试等文档。
+- `src`: 源代码目录。
+
+### doc目录:
+- `Software_Architecture_Documentmd`: 软件架构文档。
+- `bug.md`: 记录项目过程中出现的bug。
+- `figure`: 项目的各种图片资料。
+- `ppt`: 项目需求和设计的演示文稿。
+- `prompt`: 各类提示信息和问题记录。
+- `requirement.md`: 项目需求文档。
+- `test.md`: 测试文档。
+- `todo`: 待完成的任务记录。
+- `version.md`: 项目的版本信息。
+
+### src目录:
+- `__pycache__`: Python的缓存文件目录。
+- `data copy.json`: 数据备份。
+- `data.json`: 数据文件。
+- `optimizer.py`: 优化算法的实现文件。是本项目的核心算法
+- `test`: 测试文件目录。
+- `test_tmp.py`: 临时的测试文件。
+- `util.py`: 包含一些实用的函数，如从json文件中加载数据并转换为矩阵的函数。
+
+---
+
+## 待实现函数(for 开发人员)
+### optimizer.py:
+该文件是项目的核心，其中定义了一个名为 `logistics_distribution` 的函数，该函数的目标是根据输入的矩阵A1，A2，A3，W1和W2（分别表示单位运输时间、各订单的商品需求、各仓库的商品存货以及订单和仓库的优先级），输出一个满足需求的分配计划，以最大化总体满意度并最小化最大的运输时间。
+
+```python
+def logistics_distribution(A1, A2, A3, W1, W2):
+    """
+    This function takes in five matrices A1, A2, A3, W1, W2 which represent 
+    different aspects of a logistics problem. The function should output a 
+    distribution plan to maximize overall satisfaction and minimize maximum 
+    transportation time.
+    
+    Input:
+    A1: A 3D numpy array of shape (m, n, k) representing the unit transportation time
+    A2: A 2D numpy array of shape (m, k) representing the demand for each type of good for each order
+    A3: A 2D numpy array of shape (n, k
+
+) representing the stock of each type of good in each warehouse
+    W1: A 1D numpy array of length m representing the priority of each order
+    W2: A 1D numpy array of length n representing the priority of each warehouse
+    
+    Output:
+    A distribution plan that maximizes overall satisfaction and minimizes maximum transportation time.
+    """
+    # Start your code here
+    pass
+```
+
+该函数目前处于待实现的状态，需要开发人员根据实际的业务需求和优化策略完成具体的实现。
+
+
+## 环境配置(for 运维人员)
 首先，你需要确保你有以下文件：
 
 - Miniconda 的安装包：`Miniconda3-latest-Linux-x86_64.sh`
@@ -54,7 +122,7 @@
 
 现在，你应该可以在你的 `wuliu` 环境中运行你的项目源代码。如果你的项目中有 `main.py` 文件，你可以通过运行 `python main.py` 来启动你的项目。
 
-## 运行项目
+## 运行项目(for 开发人员&运维人员)
 
 1. 激活 `wuliu` 环境：
 
@@ -71,7 +139,7 @@
     ```bash
     python api.py
     ```
-## 测试项目
+## 测试项目(for 测试人员)
 
 1. 首先，运行 `api_mock.py` 来启模拟的本地服务器：
 
