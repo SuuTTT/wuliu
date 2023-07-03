@@ -1,6 +1,7 @@
 import numpy as np
 import json
 from util import json_to_matrices
+from optimizer import logistics_distribution
 def test_function():
     with open("data.json") as f:
         json_data = json.load(f)
@@ -21,5 +22,7 @@ def test_function():
 
     print("W2: Priority of each warehouse. The lower the index, the higher the priority.")
     print(W2)
-
-test_function()
+    logistics_distribution(A1, A2, A3, W1, W2)
+    
+if __name__ == "__main__":
+    test_function()

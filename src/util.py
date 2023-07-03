@@ -7,7 +7,6 @@ import json
 def json_to_matrices(json_data):
     m = len(json_data['spdd'])  # number of orders
     n = len(json_data['ck'])  # number of warehouses
-
     # Determine the number of goods
     all_goods_spdd = [order['spnm'] for order in json_data['spdd']]
     all_goods_ck = [good['spnm'] for warehouse in json_data['ck'] for good in warehouse[list(warehouse.keys())[0]]]
