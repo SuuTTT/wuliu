@@ -6,7 +6,8 @@ def test_function():
     with open("data.json") as f:
         json_data = json.load(f)
 
-    A1, A2, A3, W1, W2 = json_to_matrices(json_data)
+    A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list = json_to_matrices(json_data)
+
     for i in range(A1.shape[0]):
         for j in range(A1.shape[1]):
             print(f"For order {i+1}, warehouse {j+1}, the unit transportation times are {A1[i, j]} for goods {list(range(1, A1.shape[2]+1))}")
@@ -22,7 +23,9 @@ def test_function():
 
     print("W2: Priority of each warehouse. The lower the index, the higher the priority.")
     print(W2)
-    logistics_distribution(A1, A2, A3, W1, W2)
+    result = logistics_distribution(A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list)
+    #logistics_distribution(A1, A2, A3, W1, W2)
+    print(result)
     
 if __name__ == "__main__":
     test_function()

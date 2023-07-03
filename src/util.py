@@ -31,4 +31,15 @@ def json_to_matrices(json_data):
             good_id = all_goods.index(good['spnm'])
             A3[i, good_id] = good['sl']
 
-    return A1, A2, A3, W1, W2
+    order_list = json_data['spdd']
+    warehouse_list = [list(warehouse.values())[0] for warehouse in json_data['ck']]
+    goods_list = all_goods
+    return A1, A2, A3, W1, W2,  order_list, warehouse_list, goods_list
+
+if __name__=='__main__':
+    with open('data.json', 'r') as f:
+        json_data = json.load(f)
+    A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list = json_to_matrices(json_data)
+    print((order_list))
+    print((warehouse_list))
+    print((goods_list))

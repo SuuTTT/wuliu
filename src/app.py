@@ -8,15 +8,21 @@ import numpy as np
 
 app = Flask(__name__)
 from optimizer import logistics_distribution
-@app.route('/api/logistics_distribution', methods=['POST'])
+@app.route('//getZytpcl', methods=['POST'])
 def api_logistics_distribution():
     data = request.get_json()
-    A1, A2, A3, W1, W2 = json_to_matrices(data)
-    
-    # 调用logistics_distribution函数，这里假设函数已经定义，并接受相应的参数
-    result = logistics_distribution(A1, A2, A3, W1, W2)
-    
-    # 将返回的结果转换为JSON格式
-    result_json = jsonify(result)
-    
-    return result_json
+
+    # Use the json_to_matrices function to convert the JSON data into matrices
+    X, Y, Z, O, W, order_list, warehouse_list, goods_list = json_to_matrices(data)
+
+    # Call the logistics_distribution function
+    result = logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list)
+
+    # Convert the returned result to JSON format
+    #result_json = jsonify(result)
+
+    return result
+
+if __name__ == "__main__":
+    #app.run(host=debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)

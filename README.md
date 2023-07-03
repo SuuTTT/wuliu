@@ -1,7 +1,7 @@
 # README
 
-## 项目简介(for 项目经理)
-这是一个仓储物流优化项目，旨在利用优化算法来解决复杂的物流分配问题。给定一系列的订单需求、仓库存货、以及物流运输时间，我们的目标是找到一个最优的分配计划，以使得满足订单需求的同时，最大化总体满意度并最小化最大的运输时间。
+## 项目简介(for 所有人)
+这是一个仓储物流优化算法，旨在利用优化算法来解决复杂的物流分配问题。给定一系列的订单需求、仓库存货、以及物流运输时间，本算法的目标是找到一个最优的分配计划，以使得满足订单需求的同时，最大化总体满意度并最小化最大的运输时间。
 
 项目使用Python语言进行开发，依赖于numpy库进行矩阵计算。
 
@@ -26,44 +26,19 @@
 
 ### src目录:
 - `__pycache__`: Python的缓存文件目录。
-- `data copy.json`: 数据备份。
 - `data.json`: 数据文件。
 - `optimizer.py`: 优化算法的实现文件。是本项目的核心算法
-- `test`: 测试文件目录。
-- `test_tmp.py`: 临时的测试文件。
+- `test`: 测试文件目录。。
 - `util.py`: 包含一些实用的函数，如从json文件中加载数据并转换为矩阵的函数。
 
 ---
 
-## 待实现函数(for 开发人员)
+## 核心代码(for 开发人员)
+
 ### optimizer.py:
-该文件是项目的核心，其中定义了一个名为 `logistics_distribution` 的函数，该函数的目标是根据输入的矩阵A1，A2，A3，W1和W2（分别表示单位运输时间、各订单的商品需求、各仓库的商品存货以及订单和仓库的优先级），输出一个满足需求的分配计划，以最大化总体满意度并最小化最大的运输时间。
+该文件是项目的核心，其中定义了一个名为 `logistics_distribution` 的函数，该函数的目标是根据输入的矩阵X，Y，Z，O和W（分别表示单位运输时间、各订单的商品需求、各仓库的商品存货以及订单和仓库的优先级），输出一个满足需求的分配计划，以最大化总体满意度并最小化最大的运输时间。
 
-```python
-def logistics_distribution(A1, A2, A3, W1, W2):
-    """
-    This function takes in five matrices A1, A2, A3, W1, W2 which represent 
-    different aspects of a logistics problem. The function should output a 
-    distribution plan to maximize overall satisfaction and minimize maximum 
-    transportation time.
-    
-    Input:
-    A1: A 3D numpy array of shape (m, n, k) representing the unit transportation time
-    A2: A 2D numpy array of shape (m, k) representing the demand for each type of good for each order
-    A3: A 2D numpy array of shape (n, k
 
-) representing the stock of each type of good in each warehouse
-    W1: A 1D numpy array of length m representing the priority of each order
-    W2: A 1D numpy array of length n representing the priority of each warehouse
-    
-    Output:
-    A distribution plan that maximizes overall satisfaction and minimizes maximum transportation time.
-    """
-    # Start your code here
-    pass
-```
-
-该函数目前处于待实现的状态，需要开发人员根据实际的业务需求和优化策略完成具体的实现。
 
 
 ## 环境配置(for 运维人员)
@@ -120,72 +95,38 @@ def logistics_distribution(A1, A2, A3, W1, W2):
     cd /home/user/wuliu-master
     ```
 
-现在，你应该可以在你的 `wuliu` 环境中运行你的项目源代码。如果你的项目中有 `main.py` 文件，你可以通过运行 `python main.py` 来启动你的项目。
 
----
-:warning: **DEPRECATED**: The following information is no longer up-to-date or has been superseded by other information. It is kept here for reference only. we will update this section after the project is completed in 07/05.
 
-~~~
-## 运行项目(for 开发人员&运维人员)
+## 运行项目
 
-1. 激活 `wuliu` 环境：
-
-    ```bash
-    conda activate wuliu
-    ```
-2. 导航到你的项目源代码的文件夹：
-
-    ```bash
-    cd /home/user/wuliu-master
-    ```
-3. 运行 `api.py` 文件, 该文件会启动一个本地服务器：
-
-    ```bash
-    python api.py
-    ```
-## 测试项目(for 测试人员)
-
-1. 首先，运行 `api_mock.py` 来启模拟的本地服务器：
+1. 打开终端，激活项目所在的conda环境：
 
    ```bash
-   python api_mock.py
+   conda activate wuliu
    ```
-
-2. 然后，您有两个并列的选项：
    
-   a) 运行 `api_test.py` 来测试模拟的API：
+2. 运行项目的主应用：
 
    ```bash
-   python api_test.py
+   python app.py
    ```
+   
+   这将在本地启动服务，端口为8080，API路径为`/getZytpcl`，如：
 
-   b) 或者运行 `optimizer.py` 来进行优化操作，这是更推荐的测试方法：
-
-   ```bash
-   python optimizer.py
    ```
+   http://127.0.0.1:8080/getZytpcl
+   ```
+   
+   如果在服务器上运行，请将`127.0.0.1`替换为你的服务器地址。
 
-当您运行 `optimizer.py` 时，应当会看到一个类似于下面的输出，显示了各个仓库的商品编码、需求量、搬运时间以及成本的优化结果.
-note that you can change debug_output(orders, solution, language='zh') to debug_output(orders, solution, language='en') to get the output in English.
+## 测试项目
+
+1. 复制`test_api.py`文件，然后在你的环境中运行这个复制的文件以进行测试。
+
+注意：确保你已经安装了项目所需的所有依赖，可以通过在项目根目录下运行以下命令来安装：
 
 ```bash
-输出：
-订单  需求量
-    1          5
-    6         14
+pip install -r requirement.txt
+```
 
-仓库  时间段
-WH1  [('06-28T17:00:00', '06-28T22:00:00'), ('06-29T14:01:00', '06-29T22:01:00')]
-WH2  [('06-29T16:01:00', '06-29T23:01:00')]
-
-仓库  商品编码  需求量  开始搬运时间  结束搬运时间  成本
-WH1           AUX          5  06-28T17:00:00  06-28T22:00:00    7.0
-WH1             B        8.0  06-29T14:01:00  06-29T22:01:00   10.0
-WH2             B        6.0  06-29T16:01:00  06-29T23:01:00    8.0
-
-仓库        商品编码          需求量         开始搬运时间                结束搬运时间                成本        
-WH1       AUX                    5  06-28T17:00:00  06-28T22:00:00        7.00
-WH1       B                    8.0  06-29T14:01:00  06-29T22:01:00       10.00
-WH2       B                    6.0  06-29T16:01:00  06-29T23:01:00        8.00
-```  
-~~~
+如果遇到任何问题或需要进一步的帮助，请查看项目的详细文档或向我们的支持团队寻求帮助。
