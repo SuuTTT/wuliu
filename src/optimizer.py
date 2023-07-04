@@ -24,6 +24,10 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     alpha = 0.99
     beta = 0.01
     
+    # Normalize X and store the min and max for later denormalization
+    X_min, X_max = X.min(), X.max()
+    X_norm = (X - X_min) / (X_max - X_min)
+
     # 初始化解向量 X
     A = np.zeros_like(X, dtype=int)
     
@@ -66,7 +70,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
         if ((np.sum(A, axis=1) - Y) > 0).any():
             penalty += np.sum(np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
 
-        B = A * X
+        B = A * X_norm
         fitness_sati = alpha * np.sum(O * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
                                       axis=0)
         fitness_time = beta * np.max(np.sum(B, axis=(1, 2)))
@@ -142,7 +146,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
                             "qynm": m['qynm'],  # enterprise code
                             "spnm": k,  # goods code
                             "sl": quantity,  # quantity, convert numpy int64 to native Python int
-                            "lg": m['lg'],  # dimension
+                            #"lg": m['lg'],  # dimension not given in the data on 0705
                             "dpsj": dispatch_time,  # dispatch time, convert numpy float64 to native Python float if necessary
                         })
 
