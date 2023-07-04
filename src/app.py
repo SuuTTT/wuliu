@@ -13,10 +13,10 @@ def api_logistics_distribution():
     data = request.get_json()
 
     # Use the json_to_matrices function to convert the JSON data into matrices
-    X, Y, Z, O, W, order_list, warehouse_list, goods_list = json_to_matrices(data)
+    X, Y, Z, O, W, order_list, warehouse_list, goods_list,goods_dict = json_to_matrices(data)
 
     # Call the logistics_distribution function
-    result = logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list)
+    result = logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list,goods_dict)
 
     # Convert the returned result to JSON format
     #result_json = jsonify(result)

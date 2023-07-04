@@ -2,7 +2,7 @@ import numpy as np
 import pygad
 import json
 
-def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list):
+def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list, goods_dict):
     """
     This function takes in five matrices X, Y, Z, O, W which represent 
     different aspects of a logistics problem. The function should output a 
@@ -146,7 +146,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
                             "qynm": m['qynm'],  # enterprise code
                             "spnm": k,  # goods code
                             "sl": quantity,  # quantity, convert numpy int64 to native Python int
-                            #"lg": m['lg'],  # dimension not given in the data on 0705
+                            "lg": goods_dict[m['spnm']] ,  # dimension not given in the data on 0705
                             "dpsj": dispatch_time,  # dispatch time, convert numpy float64 to native Python float if necessary
                         })
 
