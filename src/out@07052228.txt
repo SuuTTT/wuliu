@@ -112,6 +112,7 @@ Input data for data_4.txt:
 Response for data_4.txt:
 Response status code: 200
 Response data: {'code': 200, 'data': [{'ddnm': 'Order1', 'cknm': 'cknm1', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 5, 'lg': '枚', 'dpsj': 15.0}, {'ddnm': 'Order2', 'cknm': 'cknm1', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 3, 'lg': '枚', 'dpsj': 6.0}, {'ddnm': 'Order3', 'cknm': 'cknm1', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 2, 'lg': '枚', 'dpsj': 2.0}]}
+# to be analyze :Order2 should use cknm2(priority) or cknm1(time)
 -----
 Input data for data_3.txt:
 {
@@ -446,6 +447,5 @@ Input data for givendata.json:
 -----
 Response for givendata.json:
 Response status code: 200
-Response data: {'code': 200, 'data': [{'ddnm': '168482973997d659e015cc5', 'cknm': '760100461', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 100, 'lg': '枚', 'dpsj': 600.0}, {'ddnm': '168482973997d659e015cc5', 'cknm': '710752413', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 50, 'lg': '枚', 'dpsj': 450.0}, {'ddnm': '168482973997d659e015cc5', 'cknm': '760100457', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 200, 'lg': '枚', 'dpsj': 4200.0}, {'ddnm': '168482973997d659e015cc5', 'cknm': '760100465', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 100, 'lg': '枚', 'dpsj': 2400.0}]}
-Error: The total number of 0030000000963 requested to be sent from 760100457 (200) exceeds the stock of 0030000000963 in 760100457 (50).
+Response data: {'code': 200, 'data': [{'ddnm': '168482973997d659e015cc5', 'cknm': '760100461', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 200, 'lg': '枚', 'dpsj': 1200.0}, {'ddnm': '168482973997d659e015cc5', 'cknm': '710752413', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 100, 'lg': '枚', 'dpsj': 900.0}, {'ddnm': '168482973997d659e015cc5', 'cknm': '760100457', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 50, 'lg': '枚', 'dpsj': 1050.0}, {'ddnm': '168482973997d659e015cc5', 'cknm': '760100465', 'qynm': '910201000', 'spnm': '0030000000963', 'sl': 100, 'lg': '枚', 'dpsj': 2400.0}]}
 -----

@@ -13,10 +13,10 @@ def json_to_matrices(json_data):
                 goods_dict[good['spnm']] = good['lg']
     
     # Create a list of warehouses based on their order in 'ckdata'
-    all_warehouses = list(set([data['cknm'] for order in json_data['spdd'] for data in order['ckdata']]))
-
-    # Sort the list for consistency
-    all_warehouses.sort()
+    all_warehouses = [data['cknm'] for order in json_data['spdd'] for data in order['ckdata']]
+    
+    # Removing duplicates while preserving the order
+    all_warehouses = list(dict.fromkeys(all_warehouses))
 
     all_goods_spdd = [order['spnm'] for order in json_data['spdd']]
     all_goods_ck = list(goods_dict.keys())
@@ -32,19 +32,20 @@ def json_to_matrices(json_data):
     # W2 = 1 / np.arange(1, n+1)  # We consider the priority of warehouses to be inversely proportional to their order
     W1 = np.arange(m, 0, -1) / m * 0.3 + 0.7  # We consider the priority of orders to decrease by a fixed interval
     W2 = np.arange(n, 0, -1) / n * 0.3 + 0.7  # We consider the priority of warehouses to decrease by a fixed interval
-    
+   
     for i, order in enumerate(json_data['spdd']):
         good_id = all_goods.index(order['spnm'])
         A2[i, good_id] = order['sl']
         for j, ckdata in enumerate(order['ckdata']):
             A1[i, j, good_id] = ckdata['dwyssj']
     
-    for i, warehouse_id in enumerate(all_warehouses):
-        for warehouse in json_data['ck']:
-            if warehouse_id == list(warehouse.keys())[0]:
-                for good in warehouse[warehouse_id]:
-                    good_id = all_goods.index(good['spnm'])
-                    A3[i, good_id] = good['sl']
+    for warehouse in json_data['ck']:
+        warehouse_id = list(warehouse.keys())[0]
+        if warehouse_id in all_warehouses:
+            i = all_warehouses.index(warehouse_id)
+            for good in warehouse[warehouse_id]:
+                good_id = all_goods.index(good['spnm'])
+                A3[i, good_id] = good['sl']
 
     order_list = json_data['spdd']
     warehouse_list = all_warehouses
