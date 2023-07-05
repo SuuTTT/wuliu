@@ -8,11 +8,11 @@
             "lg": "枚",
             "ckdata": [
                 {
-                    "cknm": "Warehouse1",
+                    "cknm": "cknm1",
                     "dwyssj": 3.0
                 },
                 {
-                    "cknm": "Warehouse2",
+                    "cknm": "cknm2",
                     "dwyssj": 2.0
                 }
             ]

@@ -47,7 +47,7 @@ def json_to_matrices(json_data):
     order_list = json_data['spdd']
     warehouse_list = all_warehouses
     goods_list = all_goods
-
+    
     return A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list, goods_dict
 
 if __name__=='__main__':

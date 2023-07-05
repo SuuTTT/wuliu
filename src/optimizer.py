@@ -26,7 +26,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     
     # Normalize X and store the min and max for later denormalization
     X_min, X_max = X.min(), X.max()
-    X_norm = (X - X_min) / (X_max - X_min)
+    X_norm = (X - X_min) / (X_max - X_min+1e-7)
 
     # 初始化解向量 X
     A = np.zeros_like(X, dtype=int)
@@ -71,9 +71,13 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
             penalty += np.sum(np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
 
         B = A * X_norm
+        #B_norm = B / np.minimum(np.max(Y), np.max(Z))
+        # Normalize X and store the min and max for later denormalization
+        B_min, B_max = B.min(), B.max()
+        B_norm = (B - B_min) / (B_max - B_min+1e-7)
         fitness_sati = alpha * np.sum(O * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
                                       axis=0)
-        fitness_time = beta * np.max(np.sum(B, axis=(1, 2)))
+        fitness_time = beta * np.max(np.sum(B_norm, axis=(1, 2)))
         fitness = fitness_sati - fitness_time - penalty
 
         return fitness
