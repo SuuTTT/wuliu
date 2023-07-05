@@ -18,20 +18,20 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     
     Output:
     A distribution plan that maximizes overall satisfaction and minimizes maximum transportation time.
-    A: A 3D numpy array of shape (m, n, k) representing the distribution plan
+
     """
-    
 
     A_greed = greedy_solution(X,Y,Z,O,W)
+
     # 设置满足度和运输时间的权重
     alpha = 0.5
     beta = 0.5
-    
+
     # Normalize X and store the min and max for later denormalization
     X_min, X_max = X.min(), X.max()
-    X_norm = (X - X_min) / (X_max - X_min+1e-7)
+    X_norm = (X - X_min) / (X_max - X_min + 1e-10)
 
-    # 初始化解向量 X
+    # 初始化解向量 A
     A = np.zeros_like(X, dtype=int)
     
     # 处理订单需求数据
@@ -79,15 +79,15 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
 
         B = A * X_norm
         B_norm = B / (np.minimum(np.max(Y), np.max(Z)) + 1e-10)
-        # Normalize X and store the min and max for later denormalization
-        #B_min, B_max = B.min(), B.max()
-        #B_norm = (B - B_min) / (B_max - B_min+1e-7)
+        # B_norm = (B - B.min())/(B.max() - B.min() + 1e-10)
         fitness_sati = alpha * np.sum(O * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
                                       axis=0) / (Y.shape[0]*Y.shape[1])
         fitness_time = beta * np.max(np.sum(B_norm, axis=(1, 2)) / (Z.shape[0]*Z.shape[1]))
         fitness = fitness_sati - fitness_time - penalty
 
         return fitness
+
+    print("fitness of greedy solution is: {}".format(fitness_func_penalty(None, A_greed, None)))
 
     # 设置使用带有惩罚项的满足度计算函数
     fitness_function = fitness_func_penalty
@@ -104,6 +104,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     crossover_type = "single_point" # 交叉类型
     mutation_type = "random"       # 变异类型
     mutation_percent_genes = 30    # 变异基因的百分比
+
     # 计算基因空间的上限
     gene_space_high = np.minimum(Y[:,np.newaxis,:], Z[np.newaxis,:,:]).flatten().tolist()
     gene_space = [np.arange(0, int(high+1)) for high in gene_space_high]
@@ -118,6 +119,8 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
         fitness_func=fitness_function,  # 评价函数，用于评价每个候选解的适应度
         sol_per_pop=sol_per_pop,  # 种群中的个体数量
         num_genes=num_genes,  # 每个个体中的基因数量
+        # init_range_low=init_range_low,  # 初始化基因时，基因值的最小范围
+        # init_range_high=init_range_high,  # 初始化基因时，基因值的最大范围
         initial_population=initial_population, # 初始化种群
         parent_selection_type=parent_selection_type,  # 父代选择策略
         keep_parents=keep_parents,  # 下一代中保持的父代数量
@@ -138,7 +141,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     solution.resize(X.shape)
     A = solution
 
-    print("A: best solution : {solution}".format(solution=solution))
+    print("Parameters of the best solution : {solution}".format(solution=solution))
     print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
     print(f"Is constriants satisfied: {constraints_sati(A)}")
     # Prepare the data for the JSON output
@@ -171,6 +174,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
 
     return json.dumps(result,ensure_ascii=False, indent=4)
 
+
 def greedy_solution(X, Y, Z, O, W):
     """
     This function takes in five matrices X, Y, Z, O, W which represent
@@ -202,7 +206,8 @@ def greedy_solution(X, Y, Z, O, W):
                     break
             if Y[i,k] <= 0:
                 break
-    #print(np.sum(A_greed), A_greed)
+    # print(np.sum(A_greed), A_greed)
     return A_greed
+
 
 

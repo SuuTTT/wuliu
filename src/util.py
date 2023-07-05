@@ -1,9 +1,6 @@
 import numpy as np
 import json
 
-import numpy as np
-import json
-
 def json_to_matrices(json_data):
     m = len(json_data['spdd'])  # number of orders
 
@@ -16,7 +13,10 @@ def json_to_matrices(json_data):
                 goods_dict[good['spnm']] = good['lg']
     
     # Create a list of warehouses based on their order in 'ckdata'
-    all_warehouses = [data['cknm'] for order in json_data['spdd'] for data in order['ckdata']]
+    all_warehouses = list(set([data['cknm'] for order in json_data['spdd'] for data in order['ckdata']]))
+
+    # Sort the list for consistency
+    all_warehouses.sort()
 
     all_goods_spdd = [order['spnm'] for order in json_data['spdd']]
     all_goods_ck = list(goods_dict.keys())
@@ -28,8 +28,10 @@ def json_to_matrices(json_data):
     A1 = np.zeros((m, n, k))
     A2 = np.zeros((m, k))
     A3 = np.zeros((n, k))
-    W1 = 1 / np.arange(1, m+1)  # We consider the priority of orders to be inversely proportional to their order
-    W2 = 1 / np.arange(1, n+1)  # We consider the priority of warehouses to be inversely proportional to their order
+    # W1 = 1 / np.arange(1, m+1)  # We consider the priority of orders to be inversely proportional to their order
+    # W2 = 1 / np.arange(1, n+1)  # We consider the priority of warehouses to be inversely proportional to their order
+    W1 = np.arange(m, 0, -1) / m * 0.3 + 0.7  # We consider the priority of orders to decrease by a fixed interval
+    W2 = np.arange(n, 0, -1) / n * 0.3 + 0.7  # We consider the priority of warehouses to decrease by a fixed interval
     
     for i, order in enumerate(json_data['spdd']):
         good_id = all_goods.index(order['spnm'])
@@ -51,10 +53,14 @@ def json_to_matrices(json_data):
     return A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list, goods_dict
 
 if __name__=='__main__':
-    with open('data.json', 'r') as f:
+    with open('data/data_5.txt', 'r') as f:
         json_data = json.load(f)
     A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list, goods_dict = json_to_matrices(json_data)
     print(order_list)
     print(warehouse_list)
     print(goods_list)
     print(goods_dict)
+
+# fix this code, 
+# currently, `all_warehouses = [data['cknm'] for order in json_data['spdd'] for data in order['ckdata']]`
+# is not correct, because it count the warehouse with same cknm(warehous id) multiple times

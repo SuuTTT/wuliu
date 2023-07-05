@@ -37,3 +37,90 @@ for file_name in os.listdir(data_folder):
             print("Response status code:", response.status_code)
             print("Response data:", response.json())
             print("-----")
+'''
+add a check to see if the response is valid JSON, if not, print an analysis of the error
+e.g. for this output is invalid, because the total number of goods sent from warehouse 1 exceeds the stock of goods in warehouse 1
+-----
+Input data for data_5.txt:
+{
+  "spdd": [
+    {
+      "ddnm": "Order1",
+      "qynm": "Company1",
+      "spnm": "Good1",
+      "sl": 7,
+      "lg": "\u679a",
+      "ckdata": [
+        {
+          "cknm": "cknm1",
+          "dwyssj": 3.0
+        },
+        {
+          "cknm": "cknm2",
+          "dwyssj": 4.0
+        }
+      ]
+    },
+    {
+      "ddnm": "Order2",
+      "qynm": "Company1",
+      "spnm": "Good1",
+      "sl": 4,
+      "lg": "\u679a",
+      "ckdata": [
+        {
+          "cknm": "cknm1",
+          "dwyssj": 2.0
+        },
+        {
+          "cknm": "cknm2",
+          "dwyssj": 1.0
+        }
+      ]
+    },
+    {
+      "ddnm": "Order3",
+      "qynm": "Company1",
+      "spnm": "Good1",
+      "sl": 3,
+      "lg": "\u679a",
+      "ckdata": [
+        {
+          "cknm": "cknm1",
+          "dwyssj": 1.0
+        },
+        {
+          "cknm": "cknm2",
+          "dwyssj": 3.0
+        }
+      ]
+    }
+  ],
+  "ck": [
+    {
+      "cknm1": [
+        {
+          "spnm": "Good1",
+          "sl": 10,
+          "lg": "\u679a"
+        }
+      ]
+    },
+    {
+      "cknm2": [
+        {
+          "spnm": "Good1",
+          "sl": 2,
+          "lg": "\u679a"
+        }
+      ]
+    }
+  ]
+}
+-----
+Response for data_5.txt:
+Response status code: 200
+Response data: {'code': 200, 'data': [{'ddnm': 'Order1', 'cknm': 'cknm1', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 7, 'lg': '枚', 'dpsj': 21.0}, {'ddnm': 'Order2', 'cknm': 'cknm1', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 2, 'lg': '枚', 'dpsj': 4.0}, {'ddnm': 'Order2', 'cknm': 'cknm2', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 2, 'lg': '枚', 'dpsj': 2.0}, {'ddnm': 'Order3', 'cknm': 'cknm1', 'qynm': 'Company1', 'spnm': 'Good1', 'sl': 3, 'lg': '枚', 'dpsj': 3.0}]}
+
+
+'''
