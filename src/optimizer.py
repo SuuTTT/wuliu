@@ -64,18 +64,20 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
         # setting constraints
         A.resize(X.shape)
         penalty = 0
+        penalty_weight = 10  # you can adjust this weight as you want
 
         # adjust the penalties based on your requirements
         if (np.sum(A, axis=0) < 0).any():
-            penalty += np.sum(np.abs(np.sum(A, axis=0)[np.sum(A, axis=0) < 0]))
+            penalty += penalty_weight * np.sum(np.abs(np.sum(A, axis=0)[np.sum(A, axis=0) < 0]))
         if ((np.sum(A, axis=0) - Z) > 0).any():
-            penalty += np.sum(np.abs(np.sum(A, axis=0) - Z)[(np.sum(A, axis=0) - Z) > 0])
+            penalty += penalty_weight * np.sum(np.abs(np.sum(A, axis=0) - Z)[(np.sum(A, axis=0) - Z) > 0])
         if (np.sum(A, axis=1) < 0).any():
-            penalty += np.sum(np.abs(np.sum(A, axis=1)[np.sum(A, axis=1) < 0]))
+            penalty += penalty_weight * np.sum(np.abs(np.sum(A, axis=1)[np.sum(A, axis=1) < 0]))
         if ((np.sum(A, axis=1) - Y) > 0).any():
-            penalty += np.sum(np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
+            penalty += penalty_weight * np.sum(np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
         if np.sum(A) - np.sum(Y) < 0:
-            penalty += (np.sum(Y) - np.sum(A))
+            penalty +=   (np.sum(Y) - np.sum(A))/np.sum(Y) + 1
+            
 
         B = A * X_norm
         B_norm = B / (np.minimum(np.max(Y), np.max(Z)) + 1e-10)
@@ -83,11 +85,13 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
         #B_min, B_max = B.min(), B.max()
         #B_norm = (B - B_min) / (B_max - B_min+1e-7)
         fitness_sati = alpha * np.sum(O * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
-                                      axis=0) / (Y.shape[0]*Y.shape[1])
+                                    axis=0) / (Y.shape[0]*Y.shape[1])
         fitness_time = beta * np.max(np.sum(B_norm, axis=(1, 2)) / (Z.shape[0]*Z.shape[1]))
         fitness = fitness_sati - fitness_time - penalty
 
         return fitness
+
+    # 
 
     # 设置使用带有惩罚项的满足度计算函数
     fitness_function = fitness_func_penalty
