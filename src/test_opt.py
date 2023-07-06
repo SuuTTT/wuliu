@@ -3,7 +3,7 @@ import json
 from util import json_to_matrices
 from optimizer import logistics_distribution
 def test_function():
-    with open("data.json") as f:
+    with open("data.json",encoding='utf-8') as f:
         json_data = json.load(f)
 
     A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list,goods_dict = json_to_matrices(json_data)

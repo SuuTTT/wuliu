@@ -53,11 +53,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
             return False
         else:
             return True
-            # Y = X * A1
-            # fitness_sati = alpha * np.sum(O * np.sum(np.sum(X * W[np.newaxis,:,np.newaxis], axis=1) / A2_copy, axis=-1), axis=0)
-            # fitness_time = beta * np.max(np.sum(Y, axis=(1,2)))
-            # fitness = fitness_sati - fitness_time
-            # return fitness
+            
     # 定义带有惩罚项的满足度计算函数
     def fitness_func_penalty(ga_instance, A, A_idx):
         # A is solution
@@ -81,9 +77,6 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
 
         B = A * X_norm
         B_norm = B / (np.minimum(np.max(Y), np.max(Z)) + 1e-10)
-        # Normalize X and store the min and max for later denormalization
-        #B_min, B_max = B.min(), B.max()
-        #B_norm = (B - B_min) / (B_max - B_min+1e-7)
         fitness_sati = alpha * np.sum(O * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
                                     axis=0) / (Y.shape[0]*Y.shape[1])
         fitness_time = beta * np.max(np.sum(B_norm, axis=(1, 2)) / (Z.shape[0]*Z.shape[1]))
