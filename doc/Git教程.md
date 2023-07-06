@@ -145,4 +145,6 @@ git pull origin main
 
 ## test
 
-on server 5
+on server 5 failed after while
+
+on G611
