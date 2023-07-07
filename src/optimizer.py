@@ -77,8 +77,11 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
 
         B = A * X_norm
         B_norm = B / (np.minimum(np.max(Y), np.max(Z)) + 1e-10)
-        fitness_sati = alpha * np.sum(O * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
+        order_priority_scaling_factor=1 # set to 10 to increase the importance of order priority
+        O_scaled = O ** order_priority_scaling_factor  
+        fitness_sati = alpha * np.sum(O_scaled * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
                                     axis=0) / (Y.shape[0]*Y.shape[1])
+
         fitness_time = beta * np.max(np.sum(B_norm, axis=(1, 2)) / (Z.shape[0]*Z.shape[1]))
         fitness = fitness_sati - fitness_time - penalty
 
