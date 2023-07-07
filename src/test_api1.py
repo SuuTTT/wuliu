@@ -10,7 +10,7 @@ url = 'http://127.0.0.1:8080/getZytpcl'
 
 # Set the data folder and file extensions
 data_folder = './data'
-file_extensions =['.json', '.txt']#['.json1'] #
+file_extensions =['.json1'] #['.json', '.txt']
 
 # Iterate through each file in the directory
 # Iterate through each file in the directory
@@ -26,16 +26,17 @@ for file_name in os.listdir(data_folder):
                 continue
 
             # Print the input data
-            print(f"Input data for {file_name}:")
+            #print(f"Input data for {file_name}:")
             print(json.dumps(data, indent=2))  # Pretty print JSON data
-            print("-----")
+            #print("-----")
 
             # Send the POST request to the Flask app
             response = requests.post(url, headers=headers, data=json.dumps(data))
 
             # Print the response
-            print(f"Response for {file_name}:")
-            print("Response status code:", response.status_code)
+            #print(f"Response for {file_name}:")
+            #print("Response status code:", response.status_code)
+            print(response.status_code)
 
             # Check if the response data is valid JSON
             try:

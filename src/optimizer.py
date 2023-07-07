@@ -24,9 +24,10 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
 
     A_greed = greedy_solution(X,Y,Z,O,W)
     # 设置满足度和运输时间的权重
-    alpha = 0.5
-    beta = 0.5
-    
+    alpha = 0.1
+    beta = 0.9
+    penalty_overall = 0.1 # 惩罚项系数 如果要严格按照优先级分配，且把仓库分完，请设置成1；如果要按照成本分配，请设置成0.01
+    penalty_stock =1.7 # 仓库利用率系数，越大利用率越高
     # Normalize X and store the min and max for later denormalization
     X_min, X_max = X.min(), X.max()
     X_norm = (X - X_min) / (X_max - X_min+1e-7)
@@ -38,21 +39,6 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     Y_copy = Y.copy()
     Y_copy[np.where(Y==0)] = np.inf
     
-    # 定义约束的判断函数
-    def constraints_sati(A):
-        A.resize(X.shape)
-        if (np.sum(A, axis=0) < 0).any():
-            return False
-        elif ((np.sum(A, axis=0) - Z) > 0).any():
-            return False
-        elif (np.sum(A, axis=1) < 0).any():
-            return False
-        elif ((np.sum(A, axis=1) - Y) > 0).any():
-            return False
-        elif np.sum(A) - np.sum(Y) < 0:
-            return False
-        else:
-            return True
             
     # 定义带有惩罚项的满足度计算函数
     def fitness_func_penalty(ga_instance, A, A_idx):
@@ -60,7 +46,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
         # setting constraints
         A.resize(X.shape)
         penalty = 0
-        penalty_weight = 10  # you can adjust this weight as you want
+        penalty_weight = 1  # add this if it is an untolerable constraint
 
         # adjust the penalties based on your requirements
         if (np.sum(A, axis=0) < 0).any():
@@ -71,8 +57,13 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
             penalty += penalty_weight * np.sum(np.abs(np.sum(A, axis=1)[np.sum(A, axis=1) < 0]))
         if ((np.sum(A, axis=1) - Y) > 0).any():
             penalty += penalty_weight * np.sum(np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
-        if np.sum(A) - np.sum(Y) < 0:
-            penalty +=   (np.sum(Y) - np.sum(A))/np.sum(Y) + 1
+        
+        if np.sum(A) - np.sum(Z) < 0:
+            penalty += penalty_stock*((np.sum(Z) - np.sum(A))/np.sum(Y) + 1)
+        if alpha==0:
+            if np.sum(A) - np.sum(Y) < 0:
+                penalty +=   0.01*((np.sum(Y) - np.sum(A))/np.sum(Y) + 1)
+        penalty = penalty * penalty_overall
             
 
         B = A * X_norm
@@ -93,7 +84,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     fitness_function = fitness_func_penalty
 
     # 设置遗传算法的参数
-    num_generations = 5000         # 迭代次数
+    num_generations = 50000         # 迭代次数， 过小会得到未收敛的解
     num_parents_mating = 8         # 交配的父母数量
     sol_per_pop = 16                # 种群中的解的数量
     num_genes = A.shape[0]*A.shape[1]*A.shape[2]  # 每个解中的基因数量
@@ -140,7 +131,6 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
 
     print("A: best solution : {solution}".format(solution=solution))
     print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
-    print(f"Is constriants satisfied: {constraints_sati(A)}")
     # Prepare the data for the JSON output
     # Prepare the data for the JSON output
     data = []
