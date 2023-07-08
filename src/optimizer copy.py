@@ -20,15 +20,18 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     A distribution plan that maximizes overall satisfaction and minimizes maximum transportation time.
     A: A 3D numpy array of shape (m, n, k) representing the distribution plan
     """
+    
 
     A_greed = greedy_solution(X,Y,Z,O,W)
     # 设置满足度和运输时间的权重
-    alpha = 0.5
-    beta = 0.5
-    penalty_overall=0.1
-    penalty_constrain = 1
-    penalty_stock=0.1
-    order_priority_scaling_factor=0.1
+    alpha = 1
+    beta = 0
+    penalty_overall = 1 # 惩罚项系数 如果要严格按照优先级分配，且把仓库分完，请设置成1；如果要按照成本分配，请设置成0.01
+    average_Y = np.mean(Y)
+    average_Z = np.mean(Z)
+
+    minimum_average = min(average_Y, average_Z)
+    penalty_stock =1 #minimum_average # 仓库利用率系数，越大利用率越高
     # Normalize X and store the min and max for later denormalization
     X_min, X_max = X.min(), X.max()
     X_norm = (X - X_min) / (X_max - X_min+1e-7)
@@ -40,44 +43,40 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     Y_copy = Y.copy()
     Y_copy[np.where(Y==0)] = np.inf
     
-
-    # 定义带有惩罚项的满足度计算函数
+            
     def fitness_func_penalty(ga_instance, A, A_idx):
-        # A is solution
-        # setting constraints
         A.resize(X.shape)
         penalty = 0
-        
+        penalty_weight = 1 
 
-        # adjust the penalties based on your requirements
         if (np.sum(A, axis=0) < 0).any():
-            penalty += penalty_constrain * np.sum(
-                np.abs(np.sum(A, axis=0)[np.sum(A, axis=0) < 0]))
+            penalty +=  np.sum(np.abs(np.sum(A, axis=0)[np.sum(A, axis=0) < 0]))
         if ((np.sum(A, axis=0) - Z) > 0).any():
-            penalty += penalty_constrain * np.sum(
-                np.abs(np.sum(A, axis=0) - Z)[(np.sum(A, axis=0) - Z) > 0])
+            penalty +=  np.sum(np.abs(np.sum(A, axis=0) - Z)[(np.sum(A, axis=0) - Z) > 0])
         if (np.sum(A, axis=1) < 0).any():
-            penalty += penalty_constrain * np.sum(
-                np.abs(np.sum(A, axis=1)[np.sum(A, axis=1) < 0]))
+            penalty +=  np.sum(np.abs(np.sum(A, axis=1)[np.sum(A, axis=1) < 0]))
         if ((np.sum(A, axis=1) - Y) > 0).any():
-            penalty += penalty_constrain * np.sum(
-                np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
-        #if not sufficiency_flag[0]:
+            penalty +=  penalty_weight*np.sum(np.abs(np.sum(A, axis=1) - Y)[(np.sum(A, axis=1) - Y) > 0])
+
+        # Penalty for leftover stock in warehouse
         if (Z - np.sum(A, axis=0) > 0).any():
-            penalty +=  penalty_stock*np.sum(
-                np.abs(Z - np.sum(A, axis=0))[Z - np.sum(A, axis=0) > 0])
-        #if np.sum(A) - np.sum(Y) < 0:
-        #    penalty +=   (np.sum(Y) - np.sum(A))/np.sum(Y) + 1
-        penalty = penalty_overall * penalty
+            penalty += penalty_stock * np.sum(Z - np.sum(A, axis=0)[Z - np.sum(A, axis=0) > 0])
+
+        if alpha==0:
+            if np.sum(A) - np.sum(Y) < 0:
+                penalty +=   0.01*((np.sum(Y) - np.sum(A))/np.sum(Y) + 1)
+
+        penalty = penalty * penalty_overall
 
         B = A * X_norm
         B_norm = B / (np.minimum(np.max(Y), np.max(Z)) + 1e-10)
-        O_scaled = O ** order_priority_scaling_factor 
-        fitness_sati = alpha * np.sum(O_scaled * np.sum(
-            np.sum(A * W[np.newaxis, :, np.newaxis], 
-                   axis=1) / Y_copy, axis=-1),
-                       axis=0) / (Y.shape[0]*Y.shape[1])
+        order_priority_scaling_factor=100
+        O_scaled = O ** order_priority_scaling_factor  
+        fitness_sati = alpha * np.sum(O_scaled * np.sum(np.sum(A * W[np.newaxis, :, np.newaxis], axis=1) / Y_copy, axis=-1),
+                                    axis=0) / (Y.shape[0]*Y.shape[1])
+
         fitness_time = beta * np.max(np.sum(B_norm, axis=(1, 2)) / (Z.shape[0]*Z.shape[1]))
+        #print(fitness_sati, fitness_time, penalty)
         fitness = fitness_sati - fitness_time - penalty
 
         return fitness
@@ -88,7 +87,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     fitness_function = fitness_func_penalty
 
     # 设置遗传算法的参数
-    num_generations = 50000         # 迭代次数
+    num_generations = 50000         # 迭代次数， 过小会得到未收敛的解
     num_parents_mating = 8         # 交配的父母数量
     sol_per_pop = 16                # 种群中的解的数量
     num_genes = A.shape[0]*A.shape[1]*A.shape[2]  # 每个解中的基因数量
@@ -121,7 +120,7 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
         mutation_percent_genes=mutation_percent_genes,  # 需要变异的基因的百分比
         gene_type=int,  # 基因的数据类型
         gene_space=gene_space,  # 可选的基因值范围
-        stop_criteria=["saturate_2000"]  # 停止进化的条件
+        stop_criteria=["saturate_1000"]  # 停止进化的条件
     )
 
 
@@ -133,9 +132,29 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     solution.resize(X.shape)
     A = solution
 
+    def repair_solution(A, Z):
+        """Adjusts solution A according to stock upperbound Z"""
+        total_distribution = np.sum(A, axis=0)
+        over_stock = total_distribution - Z
+        over_stock_indices = np.where(over_stock > 0)
+        
+        for idx in zip(*over_stock_indices):
+            excess = over_stock[idx]
+            while excess > 0:
+                # Find the warehouse with the largest distribution for this good
+                max_idx = np.argmax(A[:, idx[0], idx[1]])
+                # Decrease the distribution from this warehouse by 1 (or the remaining excess, if less than 1)
+                decrease = min(1, excess)
+                A[max_idx, idx[0], idx[1]] -= decrease
+                excess -= decrease
+
+        return A
+
+
+    A = repair_solution(A, Z)
+
     print("A: best solution : {solution}".format(solution=solution))
     print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
-    
     # Prepare the data for the JSON output
     # Prepare the data for the JSON output
     data = []
@@ -162,6 +181,10 @@ def logistics_distribution(X, Y, Z, O, W, order_list, warehouse_list, goods_list
     result = {
         "code": 200,
         "data": data,
+        "hyperparams":{"alpha": alpha,
+    "beta": beta,
+    "penalty_overall": penalty_overall,
+    "penalty_stock": penalty_stock}
     }
 
     return json.dumps(result,ensure_ascii=False, indent=4)

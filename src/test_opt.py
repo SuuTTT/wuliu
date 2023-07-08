@@ -26,6 +26,8 @@ def test_function():
     result = logistics_distribution(A1, A2, A3, W1, W2, order_list, warehouse_list, goods_list,goods_dict)
     #logistics_distribution(A1, A2, A3, W1, W2)
     print(result)
+    with open('test/result.json', 'w',encoding='utf-8') as f:
+        json.dump(result, f)
     
 if __name__ == "__main__":
     test_function()
