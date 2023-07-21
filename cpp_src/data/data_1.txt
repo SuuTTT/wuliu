@@ -1,0 +1,28 @@
+{
+    "spdd": [
+        {
+            "ddnm": "Order1",
+            "qynm": "Company1",
+            "spnm": "Good1",
+            "sl": 5,
+            "lg": "枚",
+            "ckdata": [
+                {
+                    "cknm": "cknm1",
+                    "dwyssj": 3.0
+                }
+            ]
+        }
+    ],
+    "ck": [
+        {
+            "cknm1": [
+                {
+                    "spnm": "Good1",
+                    "sl": 10,
+                    "lg": "枚"
+                }
+            ]
+        }
+    ]
+}
