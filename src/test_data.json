@@ -1,1 +1,132 @@
-{"spdd": [{"spnm": "0030000000963", "wd": 32.2087, "ckdata": [{"cknm": "warehouse0", "dwyssj": 4}, {"cknm": "warehouse1", "dwyssj": 1}, {"cknm": "warehouse2", "dwyssj": 3}, {"cknm": "warehouse3", "dwyssj": 1}, {"cknm": "warehouse4", "dwyssj": 1}], "ddnm": "order0", "qynm": "910200", "zwdpwcsj": "2023-06-23T08:26:00", "sl": 271, "jd": 119.1611}, {"spnm": "0030000000963", "wd": 32.2087, "ckdata": [{"cknm": "warehouse0", "dwyssj": 3}, {"cknm": "warehouse1", "dwyssj": 4}, {"cknm": "warehouse2", "dwyssj": 4}, {"cknm": "warehouse3", "dwyssj": 2}, {"cknm": "warehouse4", "dwyssj": 2}], "ddnm": "order1", "qynm": "910201", "zwdpwcsj": "2023-06-23T08:26:00", "sl": 442, "jd": 119.1611}, {"spnm": "0030000000963", "wd": 32.2087, "ckdata": [{"cknm": "warehouse0", "dwyssj": 2}, {"cknm": "warehouse1", "dwyssj": 1}, {"cknm": "warehouse2", "dwyssj": 1}, {"cknm": "warehouse3", "dwyssj": 1}, {"cknm": "warehouse4", "dwyssj": 3}], "ddnm": "order2", "qynm": "910202", "zwdpwcsj": "2023-06-23T08:26:00", "sl": 405, "jd": 119.1611}], "ck": [{"warehouse0": [{"spnm": "0030000000963", "sl": 178, "lg": "\u679a"}]}, {"warehouse1": [{"spnm": "0030000000963", "sl": 55, "lg": "\u679a"}]}, {"warehouse2": [{"spnm": "0030000000963", "sl": 34, "lg": "\u679a"}]}, {"warehouse3": [{"spnm": "0030000000963", "sl": 181, "lg": "\u679a"}]}, {"warehouse4": [{"spnm": "0030000000963", "sl": 187, "lg": "\u679a"}]}], "spmzd": 1, "dpsx": "\u5148\u8fdb\u5148\u51fa"}
+{
+    "spdd": [
+        {
+            "spnm": "0030000000963",
+            "ckdata": [
+                {
+                    "cknm": "760100460",
+                    "dwyssj": 4
+                },
+                {
+                    "cknm": "760100461",
+                    "dwyssj": 1
+                },
+                {
+                    "cknm": "760100462",
+                    "dwyssj": 2
+                },
+                {
+                    "cknm": "760100463",
+                    "dwyssj": 3
+                },
+                {
+                    "cknm": "760100464",
+                    "dwyssj": 1
+                }
+            ],
+            "ddnm": "168482973997d659e015cc0",
+            "sl": 159
+        },
+        {
+            "spnm": "0030000000963",
+            "ckdata": [
+                {
+                    "cknm": "760100460",
+                    "dwyssj": 3
+                },
+                {
+                    "cknm": "760100461",
+                    "dwyssj": 4
+                },
+                {
+                    "cknm": "760100462",
+                    "dwyssj": 2
+                },
+                {
+                    "cknm": "760100463",
+                    "dwyssj": 3
+                },
+                {
+                    "cknm": "760100464",
+                    "dwyssj": 1
+                }
+            ],
+            "ddnm": "168482973997d659e015cc1",
+            "sl": 118
+        },
+        {
+            "spnm": "0030000000963",
+            "ckdata": [
+                {
+                    "cknm": "760100460",
+                    "dwyssj": 1
+                },
+                {
+                    "cknm": "760100461",
+                    "dwyssj": 3
+                },
+                {
+                    "cknm": "760100462",
+                    "dwyssj": 4
+                },
+                {
+                    "cknm": "760100463",
+                    "dwyssj": 4
+                },
+                {
+                    "cknm": "760100464",
+                    "dwyssj": 4
+                }
+            ],
+            "ddnm": "168482973997d659e015cc2",
+            "sl": 235
+        }
+    ],
+    "ck": [
+        {
+            "760100460": [
+                {
+                    "spnm": "0030000000963",
+                    "sl": 47,
+                    "lg": "\u679a"
+                }
+            ]
+        },
+        {
+            "760100461": [
+                {
+                    "spnm": "0030000000963",
+                    "sl": 83,
+                    "lg": "\u679a"
+                }
+            ]
+        },
+        {
+            "760100462": [
+                {
+                    "spnm": "0030000000963",
+                    "sl": 169,
+                    "lg": "\u679a"
+                }
+            ]
+        },
+        {
+            "760100463": [
+                {
+                    "spnm": "0030000000963",
+                    "sl": 151,
+                    "lg": "\u679a"
+                }
+            ]
+        },
+        {
+            "760100464": [
+                {
+                    "spnm": "0030000000963",
+                    "sl": 127,
+                    "lg": "\u679a"
+                }
+            ]
+        }
+    ]
+}
