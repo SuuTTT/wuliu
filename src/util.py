@@ -101,11 +101,31 @@ def json_to_matrices(json_data):
     
     return A1, A2, A3, order_list, warehouse_list, goods_dict
 
+import numpy as np
+import json
 
+class NumpyEncoder(json.JSONEncoder):
+    """Special json encoder for numpy types"""
+    def default(self, obj):
+        if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+            np.int16, np.int32, np.int64, np.uint8,
+            np.uint16, np.uint32, np.uint64)):
+            return int(obj)
+        elif isinstance(obj, (np.float_, np.float16, np.float32, 
+            np.float64)):
+            return float(obj)
+        elif isinstance(obj, (np.ndarray,)): 
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+    
 def save_results(filename, allocation_matrix, max_transport_time):
+    data = {
+        'allocation_matrix': allocation_matrix,
+        'max_transport_time': max_transport_time
+    }
+
+    # Try saving data
     with open(filename, 'w') as f:
-        data = {
-            'allocation_matrix': allocation_matrix.tolist(),  # Assuming it's a numpy array. If it's a list, just use allocation_matrix.
-            'max_transport_time': max_transport_time
-        }
-        json.dump(data, f)
+        json.dump(data, f, cls=NumpyEncoder)
+
