@@ -42,7 +42,7 @@ def brute_force_allocation(X, Y, Z, priority_order):
         all_allocations.append(A.copy())
     
     # Calculate the transportation time for each allocation matrix and select the one with the minimum max time
-    min_max_time = float('inf')
+    min_max_tim6e = float('inf')
     best_allocation = None
     for allocation in all_allocations:
         transport_time = allocation * X

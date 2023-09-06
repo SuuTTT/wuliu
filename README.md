@@ -2,11 +2,12 @@
 
 ## intro
 
-this branch use the naive brute force method to solve the problem. mainly used to 
+this branch use the naive method(greedy, brute force, linear programming) to solve the problem. 
+mainly used to 
+1. clarify the problem and requirements
+2. generate the test data
+3. verify the correctness of the algorithm (comparison test)
 
-1. generate the test data
-2. verify the correctness of the algorithm (comparison test)
-3. clarify the problem and requirements
 
 
 ## usage
@@ -19,94 +20,137 @@ python generate_test_data.py --run_tests
 python3 test.py
 ```
 
-## problem definition
-Below, we formalize the problem with  with a example:
+## tutorial
 
-### Variables
 
-- \( W = \{ W_1, W_2 \} \) : Set of warehouses
-- \( O = \{ O_1, O_2 \} \) : Set of orders
-- \( Z = \{ Z_{W_1} = 1, Z_{W_2} = 1 \} \) : Inventory at each warehouse
-- \( X \) : Transportation time matrix, where \( X_{ij} \) is the time to ship from warehouse \( j \) to order \( i \)
-  
+
+
+### problem definition
+Below, we formalize the problem with  with a example where greedy algorithm fails to find the optimal solution:
+
+Given the transportation times(row is order, column is warehouse):
+
 \[
 X = \begin{pmatrix}
-2 & 3 \\
-10 & 4
+2 & 8 \\
+1 & 4
 \end{pmatrix}
 \]
 
-- \( Y = \{ Y_{O_1} = 1, Y_{O_2} = 1 \} \) : Demand for each order
-- Priority Order: \( O_1 > O_2 \)
+ **Greedy Algorithm**:
 
-### Greedy Algorithm
+1. **For \( O_1 \)** (Highest Priority Order):
+   - Transportation time from \( W_1 \) to \( O_1 \) is 2 hours.
+   - Transportation time from \( W_2 \) to \( O_1 \) is 8 hours.
+   - Greedy choice: Allocate from \( W_1 \) to \( O_1 \) since 2 < 8.
 
-1. Allocate the item in \( W_1 \) to \( O_1 \) because it has the minimum time for the highest-priority order.
-2. Allocate the item in \( W_2 \) to \( O_2 \).
+2. **For \( O_2 \)** (Next Priority Order):
+   - \( W_1 \) has already been allocated, so the only available option is \( W_2 \).
+   - Allocate from \( W_2 \) to \( O_2 \).
 
-Resulting Allocation Matrix \( A_{\text{greedy}} \):
-
+Resulting Allocation:
 \[
 A_{\text{greedy}} = \begin{pmatrix}
 1 & 0 \\
 0 & 1
 \end{pmatrix}
 \]
+Maximum transportation time: 8 hours (from \( W_2 \) to \( O_1 \)).
 
-Maximum Transportation Time \( T_{\text{max, greedy}} \):
+ **Optimal Allocation**:
 
-\[
-T_{\text{max, greedy}} = \max(2, 4) = 4
-\]
+1. **For \( O_1 \)**:
+   - Despite the longer transportation time from \( W_2 \), allocate from \( W_2 \) to \( O_1 \).
 
-### Optimal Allocation
+2. **For \( O_2 \)**:
+   - Allocate from \( W_1 \) to \( O_2 \).
 
-1. Allocate the item in \( W_2 \) to \( O_1 \).
-2. Allocate the item in \( W_1 \) to \( O_2 \).
-
-Resulting Allocation Matrix \( A_{\text{optimal}} \):
-
+Resulting Allocation:
 \[
 A_{\text{optimal}} = \begin{pmatrix}
 0 & 1 \\
 1 & 0
 \end{pmatrix}
 \]
+Maximum transportation time: 4 hours (from \( W_2 \) to \( O_2 \)).
+ the greedy algorithm fails to find the optimal solution because it doesn't foresee that allocating from \( W_1 \) to \( O_1 \) would result in a longer maximum transportation time for \( O_2 \).
 
-Maximum Transportation Time \( T_{\text{max, optimal}} \):
+next, we will specify our additional requirements for some special cases.
+
+### additional requirements
+
+#### 1. Exceeding Inventory
+
+in this case, we should ensure the order of higher priority is satisfied first.
 
 \[
-T_{\text{max, optimal}} = \max(3, 10) = 10
+X = \begin{pmatrix}
+2 & 8 \\
+1 & 4
+\end{pmatrix}
 \]
 
-In this case, the greedy algorithm does provide the optimal solution in terms of minimizing the maximum transportation time.
+Where:
+- \(O_1\) requires 10 units and is the top priority order.
+- \(O_2\) also requires 10 units.
+- There are two warehouses, \(W_1\) and \(W_2\), with 5 units each.
 
-## More About Optimal Goods Allocation Algorithms
+** Desired Behavior**
+For the order \(O_1\), we would ideally want to allocate 5 units from each warehouse, resulting in a maximum transportation time of max\((2*5,5*8)=40\) hours. Then, for \(O_2\), we would have no remaining inventory, so no allocation is made. This would result in a matrix:
+\[
+A = \begin{pmatrix}
+5 & 5 \\
+0 & 0
+\end{pmatrix}
+\]
+
+#### review
+is the additional requirement consistent with the original requirement? I doubt that there may be some conflict between the two requirements. making it's impossible to find a solution that satisfies both requirements.
+
+
+
+### key concept
+
+**Allocation Combination:**
+An allocation combination represents one possible way to distribute goods from warehouses to a specific order. It is a tuple that contains the amount of goods allocated from each warehouse to fulfill the demand for the order. For example, if we have 2 warehouses and need to fulfill an order of 10 units, an allocation combination might be (4, 6), meaning 4 units from warehouse 1 and 6 units from warehouse 2.
+
+**Remaining Inventory:**
+Remaining inventory is a vector that keeps track of how many goods are left in each warehouse after the allocation for the current order. As we allocate goods from the warehouses to fulfill an order, we reduce the remaining inventory accordingly. This ensures that we don't allocate more goods than are available in the warehouses.
+
+### coding trick
+
+Use  product in itertools to generate all possible allocation combinations:
+The product function from the itertools module is used to generate all possible combinations of allocations for the current order. By using the product function with the allocation ranges for each warehouse, we can explore every possible way to fulfill the order's demand from the available inventory in the warehouses. This is essential for the brute-force method, as we want to examine all possible allocations to find the optimal one.
+
+
+
+## algorithm design
+###  More About Optimal Goods Allocation Algorithms
 
 his document introduces algorithms designed to optimally allocate goods from multiple warehouses to various orders. Both methods aim to minimize the maximum transportation time while respecting the inventory constraints of the warehouses and the demand of the orders.
 
-### 1. Brute Force Allocation (`brute_force_optimal_allocation`)
+#### 1. Brute Force Allocation (`brute_force_optimal_allocation`)
 
 This method exhaustively explores all possible allocation combinations, making it capable of finding the globally optimal solution.
 
-#### Key Features:
+##### Key Features:
 - **Exhaustive Search**: Explores every possible way to distribute goods from warehouses to orders.
 - **Global Optimization**: Finds the globally optimal solution due to its exhaustive nature.
 - **Order Prioritization**: Respects the given priority order of orders during the exploration.
 
-#### Time Complexity:
+##### Time Complexity:
 Due to its exhaustive nature, this method can be computationally expensive and time-consuming, especially for a larger number of orders and warehouses.
 
-### 2. Iterative Allocation (`iterative_allocation`)
+#### 2. Iterative Allocation (`iterative_allocation`)
 
 This method uses an iterative and greedy approach to allocate goods based on transportation times and order priority.
 
-#### Key Features:
+##### Key Features:
 - **Greedy Allocation**: Makes allocation decisions iteratively based on current circumstances, favoring shorter transportation times.
 - **Local Optimization**: Might not always find the globally optimal solution but is often close to optimal and much faster.
 - **Order Prioritization**: Allocates goods to higher-priority orders first, ensuring that orders with higher importance are satisfied first.
 
-#### Time Complexity:
+##### Time Complexity:
 The iterative method is more suitable for larger problem instances due to its lower time complexity.
 
 
@@ -179,18 +223,5 @@ Replace `[NUMBER]` with desired values. Use `--exceed_inventory` if the demand c
 
 For each scenario, datasets are created, processed with the allocation algorithm, and saved in the `data_gen` directory. The results, such as the allocation matrix and max transport time, are also displayed.
 
-## tutorial
-
-### key concept
-
-**Allocation Combination:**
-An allocation combination represents one possible way to distribute goods from warehouses to a specific order. It is a tuple that contains the amount of goods allocated from each warehouse to fulfill the demand for the order. For example, if we have 2 warehouses and need to fulfill an order of 10 units, an allocation combination might be (4, 6), meaning 4 units from warehouse 1 and 6 units from warehouse 2.
-
-**Remaining Inventory:**
-Remaining inventory is a vector that keeps track of how many goods are left in each warehouse after the allocation for the current order. As we allocate goods from the warehouses to fulfill an order, we reduce the remaining inventory accordingly. This ensures that we don't allocate more goods than are available in the warehouses.
-
-### coding trick
-
-Use of product:
-The product function from the itertools module is used to generate all possible combinations of allocations for the current order. By using the product function with the allocation ranges for each warehouse, we can explore every possible way to fulfill the order's demand from the available inventory in the warehouses. This is essential for the brute-force method, as we want to examine all possible allocations to find the optimal one.
+### Test case design
 

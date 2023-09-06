@@ -2,7 +2,7 @@ import os
 import datetime
 import argparse
 from util import generate_test_data_json, save_test_data, load_test_data, json_to_matrices, save_results
-from allocation import brute_force_allocation
+from optimizer import brute_force_optimal_allocation
 
 def generate_and_process_test_data(args):
     # Ensure the directory exists or create it
@@ -19,40 +19,36 @@ def generate_and_process_test_data(args):
 
     # Load and process the test data
     loaded_data = load_test_data(filename)
-    A1, A2, A3, order_list, warehouse_list, goods_dict = json_to_matrices(loaded_data)
-    allocation_matrix, max_transport_time = brute_force_allocation(A1, A2, A3, priority_order)
+    X,Y,Z, order_list, warehouse_list, goods_dict = json_to_matrices(loaded_data)
+    allocation_matrix, max_transport_time = brute_force_optimal_allocation(X,Y,Z, priority_order)
 
     # Save results to file
     results_filename = filename.replace("test_data", "results")
-    save_results(results_filename, allocation_matrix, max_transport_time)
+    save_results(results_filename, allocatPion_matrix, max_transport_time)
 
     # Display results
     print(f"Test case: o{args.num_orders}_w{args.num_warehouses}_d{args.max_demand}_i{args.max_inventory}_{'exceed' if args.exceed_inventory else 'noexceed'}")
+    print("X, Y, Z, priority_order:", X, Y, Z, priority_order)
     print("Allocation Matrix:\n", allocation_matrix)
     print("Max Transport Time:", max_transport_time)
 
 def run_test_cases():
     # Baseline Test
     print("Running baseline test...")
-    generate_and_process_test_data(argparse.Namespace(num_orders=3, num_warehouses=5, max_demand=500, max_inventory=200, exceed_inventory=False))
-
-    # Edge Cases
-    print("\nRunning edge cases...")
-    # Minimal inputs
-    generate_and_process_test_data(argparse.Namespace(num_orders=1, num_warehouses=1, max_demand=2, max_inventory=2, exceed_inventory=False)) # max_demand set to 2 here
+    generate_and_process_test_data(argparse.Namespace(num_orders=2, num_warehouses=2, max_demand=2, max_inventory=2, exceed_inventory=False))
 
     # Special Cases: Varying configuration
     print("\nRunning special cases...")
     for i in range(2, 12):  # From 2 to 11 warehouses with fixed orders
-        generate_and_process_test_data(argparse.Namespace(num_orders=5, num_warehouses=i, max_demand=500, max_inventory=200, exceed_inventory=False))
+        generate_and_process_test_data(argparse.Namespace(num_orders=5, num_warehouses=i, max_demand=50, max_inventory=20, exceed_inventory=False))
 
     for i in range(2, 12):  # From 2 to 11 orders with fixed warehouses
-        generate_and_process_test_data(argparse.Namespace(num_orders=i, num_warehouses=5, max_demand=500, max_inventory=200, exceed_inventory=True))
+        generate_and_process_test_data(argparse.Namespace(num_orders=i, num_warehouses=5, max_demand=50, max_inventory=20, exceed_inventory=True))
 
     # Extreme Demand and Inventory
     print("\nRunning extreme cases...")
-    generate_and_process_test_data(argparse.Namespace(num_orders=3, num_warehouses=5, max_demand=10000, max_inventory=200, exceed_inventory=True))
-    generate_and_process_test_data(argparse.Namespace(num_orders=3, num_warehouses=5, max_demand=500, max_inventory=10000, exceed_inventory=False))
+    generate_and_process_test_data(argparse.Namespace(num_orders=3, num_warehouses=5, max_demand=100, max_inventory=20, exceed_inventory=True))
+    generate_and_process_test_data(argparse.Namespace(num_orders=3, num_warehouses=5, max_demand=50, max_inventory=100, exceed_inventory=False))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate, process test data, and run test cases.')
