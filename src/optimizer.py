@@ -1,113 +1,175 @@
 import numpy as np
+import pulp
+import numpy as np
 
-from itertools import product
 
-import json
-from scipy.optimize import linprog
+def initial_allocation(data):
+    """
+    Perform initial allocation based on the minimum transport times.
 
-def lp_allocation(X, Y, Z, T):
-    m, n = X.shape
-    
-    # Flatten the X matrix to a 1D array
-    c = np.zeros(m * n)
-    
-    # Inequality constraints: for each order, the sum of allocations should be >= demand
-    A_ineq = np.zeros((m, m * n))
-    for i in range(m):
-        A_ineq[i, i * n:(i + 1) * n] = -1
-    b_ineq = -Y
+    :param data: A dictionary containing X, Y, and Z
+    :return: Initial Allocation Matrix A, Remaining Stock, Remaining Demand
+    """
+    X = data['X']
+    Y = data['Y']
+    Z = data['Z']
 
-    # Equality constraints: for each warehouse, the sum of allocations should be <= inventory
-    A_eq = np.zeros((n, m * n))
-    for j in range(n):
-        A_eq[j, j::n] = 1
-    b_eq = Z
-    
-    # Additional constraint: for each pair (i, j), a_ij * X_ij <= T
-    A_T = np.zeros((m * n, m * n))
-    np.fill_diagonal(A_T, X.flatten())
-    b_T = np.full(m * n, T)
-    
-    # Concatenate all constraints
-    A_ineq = np.concatenate([A_ineq, A_T], axis=0)
-    b_ineq = np.concatenate([b_ineq, b_T])
-    
-    # Bounds for each variable (0 <= a_ij <= 1)
-    x_bounds = (0, 1)
-    bounds = [x_bounds] * (m * n)
-    
-    # Solve the linear program
-    result = linprog(c, A_ub=A_ineq, b_ub=b_ineq, A_eq=A_eq, b_eq=b_eq, bounds=bounds, method='highs')
-    
-    if result.success:
-        # Extract the allocation matrix from the result
-        allocation_matrix = np.array(result.x).reshape((m, n))
-        return allocation_matrix, True
-    else:
-        return None, False
+    A = np.zeros_like(X)
+    remaining_Y = np.copy(Y)
+    remaining_Z = np.copy(Z)
 
-def binary_search_allocation(X, Y, Z):
-    low_T = 0
-    high_T = np.max(X) * np.max(Y)
-    tolerance = 1e-5
-    optimal_allocation = None
+    sorted_idx = np.unravel_index(np.argsort(X, axis=None), X.shape)
+    for i, j in zip(*sorted_idx):
+        if remaining_Y[i] == 0 or remaining_Z[j] == 0:
+            continue
+        allocate_amount = min(remaining_Y[i], remaining_Z[j])
+        A[i, j] += allocate_amount
+        remaining_Y[i] -= allocate_amount
+        remaining_Z[j] -= allocate_amount
+
+    return A, remaining_Z, remaining_Y
+
+
+def optimize_allocation(data):
+    X = data['X']
+    Y = data['Y']
+    Z = data['Z']
+    priority_order = data['priority_order']
     
-    while high_T - low_T > tolerance:
-        mid_T = (high_T + low_T) / 2.0
-        allocation_matrix, is_feasible = lp_allocation(X, Y, Z, mid_T)
+    num_orders, num_warehouses = X.shape
+
+    # Initialize the ILP problem
+    prob = pulp.LpProblem("Product_Allocation", pulp.LpMinimize)
+
+    # Decision Variables (integer type specified)
+    A_vars = pulp.LpVariable.dicts("Allocation", [(i, j) for i in range(num_orders) for j in range(num_warehouses)],
+                                   0, cat='Integer')  # non-negative integers
+    M = pulp.LpVariable("Max_Transport_Time", 0)  # non-negative
+
+    # Objective Function
+    prob += M, "Objective is to Minimize the Maximum Transport Time"
+
+    # Constraints
+    # Set M to be greater than every element in the Hadamard product of X and A
+    for i in range(num_orders):
+        for j in range(num_warehouses):
+            prob += M >= X[i][j] * A_vars[(i, j)]
+
+    # Adjusted Constraint: Ensure sum of allocations for each order is exactly the demand
+    for i in range(num_orders):
+        prob += pulp.lpSum([A_vars[(i, j)] for j in range(num_warehouses)]) == Y[i]
         
-        if is_feasible:
-            high_T = mid_T
-            optimal_allocation = allocation_matrix
-        else:
-            low_T = mid_T
-            
-    optimal_T = (high_T + low_T) / 2.0
-    return optimal_allocation, optimal_T
+    # Ensure sum of allocations for each warehouse is <= inventory
+    for j in range(num_warehouses):
+        prob += pulp.lpSum([A_vars[(i, j)] for i in range(num_orders)]) <= Z[j]
 
-def brute_force_optimal_allocation(X, Y, Z, priority_order):
-    m, n = Y.shape[0], Z.shape[0]
+    # Solve
+    prob.solve()
+
+
+    # Extract values of A_vars into a matrix form
+    A = np.zeros((num_orders, num_warehouses))
+    for i, j in A_vars:
+        A[i, j] = A_vars[(i, j)].varValue
+
+    return A
+
+
+def allocate_based_on_priority(Y, Z, priority_order):
+    A = np.zeros((len(Y), len(Z)))
+    for order_index in priority_order:
+        for warehouse_index in range(len(Z)):
+            allocation = min(Z[warehouse_index], Y[order_index])
+            A[order_index][warehouse_index] = allocation
+            Z[warehouse_index] -= allocation
+            Y[order_index] -= allocation
+    return A
+
+def optimize_allocation_priority(data):
+    X = data['X']
+    Y = data['Y'].copy()  # We make a copy since we modify it
+    Z = data['Z'].copy()  # We make a copy since we modify it
+    priority_order = data['priority_order']
     
-    # Check if the total demand is less than or equal to the total inventory
-    if np.sum(Y) <= np.sum(Z):
-        # In this case, we can fully satisfy all orders
-        # We'll use the binary search approach to find the optimal allocation
-        allocation_matrix, optimal_T = binary_search_allocation(X, Y, Z)
-        return allocation_matrix, optimal_T
+    A, remaining_Z, remaining_Y = initial_allocation(data)
     
-    # If the total demand exceeds the total inventory
-    else:
-        # Identify up to which priority order the demands can be fully met
-        total_inventory = np.sum(Z)
-        last_fully_satisfied_order_index = -1
-        for i in priority_order:
-            if Y[i] <= total_inventory:
-                last_fully_satisfied_order_index = i
-                total_inventory -= Y[i]
+    if np.sum(remaining_Y) > 0:  # Not all orders can be satisfied
+        A = allocate_based_on_priority(Y, Z, priority_order)
+    else:  # All orders can be satisfied
+        A = optimize_allocation(data)
+    
+    return A
+
+def validate_allocation_priority(A, Y, Z, priority_order, expected_A=None):
+    # Validate if sum of allocations for each order i is equal to Yi
+    for i, y in enumerate(Y):
+        if np.sum(A[:, i]) != y:
+            if np.sum(A) == np.sum(Z):  # All inventory is used
+                return False, f"Order {i} allocation mismatch considering priority. Expected: {y}, Got: {np.sum(A[:, i])}. But all inventory was used."
             else:
-                break
-        
-        # Only consider the orders up to the last order that can be fully satisfied
-        # and allocate the remaining inventory to the next order in priority
-        if last_fully_satisfied_order_index != -1:
-            new_Y = Y[:last_fully_satisfied_order_index+1].copy()
-            if last_fully_satisfied_order_index+1 < m:
-                new_Y = np.append(new_Y, total_inventory)
-            new_priority_order = priority_order[:last_fully_satisfied_order_index+2]
-        else:
-            new_Y = np.array([total_inventory])
-            new_priority_order = np.array([priority_order[0]])
-        
-        allocation_matrix, optimal_T = binary_search_allocation(X[:len(new_Y)], new_Y, Z)
-        return allocation_matrix, optimal_T
+                return False, f"Order {i} allocation mismatch considering priority. Expected: {y}, Got: {np.sum(A[:, i])}."
+    
+    # Validate if sum of allocations from each warehouse j does not exceed Zj
+    for j, z in enumerate(Z):
+        if np.sum(A[j, :]) > z:
+            return False, f"Warehouse {j} over allocation. Expected: <= {z}, Got: {np.sum(A[j, :])}."
+    
+    # Validate if all elements in A are greater than or equal to 0
+    if np.any(A < 0):
+        return False, "Negative allocation detected."
+    
+    # If expected_A is provided, compare with the given A
+    if expected_A is not None:
+        if not np.array_equal(A, expected_A):
+            return False, "The given allocation matrix does not match the expected result."
 
-# Don't forget to include the 'lp_allocation' and 'binary_search_allocation' functions from the previous code snippet.
-
-
-if __name__=='__main__':
+    return True, "All constraints satisfied."
 
 
-    # Test data definitions
+import numpy as np
+
+def compute_minimized_max_transport_time(A, X):
+    """
+    Compute the minimized maximum transport time based on allocation matrix A and transport time matrix X.
+    
+    Args:
+    - A (numpy.ndarray): Allocation matrix.
+    - X (numpy.ndarray): Transport time matrix.
+    
+    Returns:
+    - float: Minimized maximum transport time.
+    """
+    # Compute the Hadamard product
+    hadamard_product = np.multiply(A, X)
+    
+    # Find and return the maximum value in the matrix
+    return np.max(hadamard_product)
+
+def main_allocation_function(case):
+    """
+    Optimize the product allocation and compute minimized maximum transport time.
+    
+    Args:
+    - case (dict): Dictionary containing priority order, transport time matrix X, demand array Y, and stock array Z.
+    
+    Returns:
+    - dict: Dictionary containing optimized allocation matrix A and minimized maximum transport time.
+    """
+    
+    # Optimize allocation considering priority
+    A_optimized = optimize_allocation_priority(case)
+    
+    # Compute minimized maximum transport time
+    max_time = compute_minimized_max_transport_time(A_optimized, case['X'])
+    
+    return {
+        'Allocation Matrix': A_optimized,
+        'Minimized Maximum Transport Time': max_time
+    }
+
+
+def main():
+    # Assuming you have defined test_data somewhere before this, or it could be imported
     test_data = [
         {
             'X': np.array([[4, 2], [3, 2]]),
@@ -124,9 +186,9 @@ if __name__=='__main__':
             'description': "Not all orders can be satisfied, and priority comes into play"
         },
         {
-            'X': np.array([[1, 4], [4, 2]]),
+            'X': np.array([[1, 1], [1, 2]]),
             'Y': np.array([1, 1]),
-            'Z': np.array([3, 4]),
+            'Z': np.array([1, 1]),
             'priority_order': np.array([0, 1]),
             'description': "All orders can be satisfied, but not in a greedy manner"
         },
@@ -163,17 +225,35 @@ if __name__=='__main__':
             'description': "Complex case"
         }
     ]
+    from util import append_data
+    # Example of appending generated data
+    test_data = append_data(test_data, source='generated', num_orders=5, num_warehouses=3, max_demand=10, max_inventory=7, description="Generated data example")
 
-    # Test execution
-    test_results = []
-    for i, test_case in enumerate(test_data):
-        X, Y, Z, priority_order, description = test_case.values()
-        allocation_matrix, max_transport_time = brute_force_optimal_allocation(X, Y, Z, priority_order)
-        test_results.append({
-            'test_case': i + 1,
-            'description': description,
-            'allocation_matrix': allocation_matrix.tolist(),
-            'max_transport_time': max_transport_time
-        })
+    # Example of appending data from a file
+    test_data = append_data(test_data, source='file', filename="tmp/test_data.json", description="Data loaded from file")
 
-    print(json.dumps(test_results, indent=2))
+    results = []
+    for i, case in enumerate(test_data):
+        print(f"============= Test Case {i+1} =============")
+        print(f"Description: {case['description']}")
+        print(f"Priority Order: {case['priority_order']}")
+        print(f"Transport Time Matrix (X): \n{case['X']}")
+        print(f"Demand Array (Y): {case['Y']}")
+        print(f"Stock Array (Z): {case['Z']}")
+        
+        # Get the results from the main function
+        result = main_allocation_function(case)
+        
+        print("\nOptimized Allocation Matrix A:")
+        print(result['Allocation Matrix'])
+        
+        is_valid, message = validate_allocation_priority(result['Allocation Matrix'], case['Y'], case['Z'], case['priority_order'])
+        print(message)  # this will print if the allocation was valid or not
+
+        print(f"Minimized Maximum Transport Time: {result['Minimized Maximum Transport Time']}")
+        print("===========================================\n")
+        
+        results.append(result)
+
+if __name__ == "__main__":
+    main()
