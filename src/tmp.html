@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathJax Demo using $</title>
+
+    <script type="text/javascript" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']]
+            }
+        };
+    </script>
+
+</head>
+<body>
+    <h2>MathJax Demo</h2>
+
+    Here is an inline math expression: $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
+
+    <p>And here's a displayed equation:</p>
+    $$
+    f(x) = \int_{-\infty}^\infty \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
+    $$
+
+    Here's another inline equation: $E = mc^2$
+
+</body>
+</html>

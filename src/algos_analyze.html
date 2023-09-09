@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>algos_analyze.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%E4%BA%A7%E5%93%81%E5%88%86%E9%85%8D%E9%97%AE%E9%A2%98%E7%9A%84%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90">产品分配问题的算法分析</h1>
+<h2 id="%E5%BC%95%E8%A8%80">引言</h2>
+<p>随着供应链管理和物流需求的增加，为产品分配开发一个高效的算法变得越来越重要。我们项目的目标是从多个仓库分配到多个订单。考虑到仓库和订单之间的运输时间、每个订单的需求限制及每个仓库的库存限制的复杂性，采用最佳的算法方法确保效率和准确性至关重要。本文档的目的是评估并推荐最合适的算法方法。</p>
+<hr>
+<h2 id="%E5%B7%B2%E5%AE%9E%E6%96%BD%E7%9A%84%E7%AE%97%E6%B3%95%E6%96%B9%E6%B3%95">已实施的算法方法</h2>
+<h3 id="1-%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95-ga-%E6%96%B9%E6%B3%95">1. 遗传算法 (GA) 方法</h3>
+<h4 id="%E5%AE%9A%E4%B9%89%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%80%A7">定义及相关性</h4>
+<p>遗传算法是受自然演化过程启发的启发式搜索方法。对于产品分配问题，个体可以表示潜在的分配矩阵，适应性函数可以基于目标（例如最小化最大运输时间）。</p>
+<h4 id="%E4%BC%98%E7%82%B9">优点</h4>
+<ul>
+<li>灵活性：GA 可以适应各种优化问题。</li>
+<li>由于交叉和突变操作，可以避免局部最优。</li>
+</ul>
+<h4 id="%E7%BC%BA%E7%82%B9">缺点</h4>
+<ul>
+<li>结果验证：由于GA的随机性，结果在不同的运行中可能不一致，使它们难以验证。</li>
+<li>可解释性：由于它们的启发式性质，GA提供的解决方案可能缺乏清晰的可解释性，使得难以证明或理解分配决策。</li>
+</ul>
+<h4 id="%E7%BB%93%E8%AE%BA">结论</h4>
+<p>尽管GA提供了多功能的方法，但其固有的随机性和缺乏可解释性可能对于需要决策证明的问题是一个重要的关注点。</p>
+<hr>
+<h3 id="2-%E6%95%B4%E6%95%B0%E7%BA%BF%E6%80%A7%E8%A7%84%E5%88%92-ilp-%E6%96%B9%E6%B3%95">2. 整数线性规划 (ILP) 方法</h3>
+<h4 id="%E5%AE%9A%E4%B9%89%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%80%A7">定义及相关性</h4>
+<p>ILP涉及数学优化，其中部分或所有变量限制为整数。鉴于产品分配问题的约束和目标，ILP可以将其表述为一组线性不等式，以找到分配的最佳整数值。</p>
+<h4 id="%E4%BC%98%E7%82%B9">优点</h4>
+<ul>
+<li>准确性：ILP提供确切的最佳解决方案，使其值得信赖。</li>
+<li>全面性：ILP可以自然地满足问题的目标函数和约束。</li>
+</ul>
+<h4 id="%E7%BC%BA%E7%82%B9">缺点</h4>
+<ul>
+<li>可扩展性：随着问题规模的增加，ILP求解器可能会变得过于缓慢。（ILP是NP困难问题，我们使用了包含分支定界技术的求解器。）</li>
+<li>求解器依赖性：解决ILP的效率甚至可能性可能取决于所使用的特定求解器及其实现。</li>
+</ul>
+<h4 id="%E7%BB%93%E8%AE%BA">结论</h4>
+<p>对于问题的较小实例，由于其准确性，ILP是优先考虑的方法。然而，其可扩展性问题使其不太适合大型数据集或实时决策。</p>
+<hr>
+<h2 id="%E5%85%B6%E4%BB%96%E8%80%83%E8%99%91%E7%9A%84%E7%AE%97%E6%B3%95%E6%96%B9%E6%B3%95">其他考虑的算法方法</h2>
+<h3 id="3-%E4%BA%8C%E9%83%A8%E5%8C%B9%E9%85%8D%E6%96%B9%E6%B3%95">3. 二部匹配方法</h3>
+<h4 id="%E5%AE%9A%E4%B9%89%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%80%A7">定义及相关性</h4>
+<p>二部匹配问题与寻找二部图中的最大匹配数有关。我们的分配问题有相似之处：其中一个集合代表仓库，另一个集合代表订单。我们可以将每个仓库和订单之间的可能分配视为图的一条边，其中边的权重可能基于运输时间或成本。在这样的图模型中，目标是找到一个匹配，使得所有订单得到满足而且总体成本最低。</p>
+<h4 id="%E4%BC%98%E7%82%B9">优点</h4>
+<ul>
+<li>表示和理解的简单性。</li>
+<li>有效的多项式时间算法，如匈牙利方法。</li>
+</ul>
+<h4 id="%E7%BC%BA%E7%82%B9">缺点</h4>
+<ul>
+<li>无法处理我们问题的多单位分配性质。</li>
+<li>不能直接处理仓库和订单的容量限制。</li>
+<li>目标不匹配：我们的目标是最小化最大运输时间，而二部匹配重点是最大化匹配或最小化总成本。</li>
+</ul>
+<h4 id="%E7%BB%93%E8%AE%BA">结论</h4>
+<p>尽管我们问题的二部结构暗示可能使用二部匹配，但独特的约束和目标使其不适合作为直接解决方案。</p>
+<h3 id="4-%E7%BD%91%E7%BB%9C%E6%B5%81%E6%96%B9%E6%B3%95">4. 网络流方法</h3>
+<h4 id="%E5%AE%9A%E4%B9%89%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%80%A7">定义及相关性</h4>
+<p>产品分配问题可被映射到一个网络流框架。问题中，仓库和订单的二部结构为此提供了清晰的模型，使得我们可以将每个仓库的库存、每个订单的需求，以及仓库与订单之间的运输时间映射到网络中的节点和边。</p>
+<h4 id="%E4%BC%98%E7%82%B9">优点</h4>
+<ul>
+<li><strong>边容量</strong>: 可以直接反映仓库的库存和订单的需求。</li>
+<li><strong>边成本</strong>: 用于表达仓库与订单之间的运输时间。</li>
+<li><strong>明确的方向流</strong>: 因为问题的二部特性，流动性更为明确，分析也更为简化。</li>
+<li><strong>高效算法</strong>: 可以使用多项式时间的算法如连续最短路径算法。</li>
+</ul>
+<h4 id="%E7%BB%93%E8%AE%BA">结论</h4>
+<p>网络流方法凭借其问题的二部性质，提供了一种既有效又符合所有约束与目标的解决方案。</p>
+<hr>
+<h2 id="%E6%9C%80%E7%BB%88%E7%BB%93%E8%AE%BA">最终结论</h2>
+<p>经过分析，虽然二部匹配提供了一些概念性的优势，但在适应产品分配问题的独特要求方面还是有所不足。另一方面，网络流方法灵活且更符合问题的需求。鉴于GA和ILP的挑战，网络流模型仍然是一个引人注目的方法，因为它在效率与问题的需求之间实现了平衡。</p>
+<h1 id="%E7%BD%91%E7%BB%9C%E6%B5%81%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1">网络流算法设计</h1>
+<p><strong>结论</strong>：
+产品分配问题的目标是从多个仓库到多个订单中最小化最大的运输时间，这可以恰当地映射到一个网络流框架中。此问题的二分图结构，其中一个集合代表仓库，另一个集合代表订单，简化了问题的表示并为高效解决提供了途径。</p>
+<p><strong>实际实施计划</strong>：</p>
+<ol>
+<li>
+<p><strong>图的构造</strong>：</p>
+<ul>
+<li><strong>节点</strong>：
+<ul>
+<li>创建一个源节点 ( S ) 和一个汇点 ( T )。</li>
+<li>为每个仓库和每个订单创建节点。</li>
+</ul>
+</li>
+<li><strong>边 &amp; 容量</strong>：
+<ul>
+<li>将 ( S ) 连接到每个仓库节点，其容量等于该仓库的库存。</li>
+<li>将每个订单节点连接到 ( T ) ，其容量等于该订单的需求。</li>
+<li>将每个仓库连接到每个订单。将这些边的初始容量设置为无限，或者更实际地说，为仓库库存或订单需求的最大值。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>二分目标运输时间</strong>：</p>
+<ul>
+<li>使用二分查找方法确定最大允许的运输时间。在二分查找的每次迭代中：
+<ul>
+<li>根据运输时间矩阵 ( X ) 设置从仓库到订单的边的成本。低于当前阈值的运输时间的边可以设置成本为0，而高于阈值的可以设置为高昂的成本或暂时从图中删除。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>使用最小成本流算法解决</strong>：</p>
+<ul>
+<li>对于二分查找的每次迭代，解决产生的最小成本流问题。有几种可用的算法，如连续最短路径算法，用于找到最小成本的流。</li>
+<li>检查解决方案的可行性。如果当前阈值存在解决方案，更新潜在的最小最大运输时间。如果没有，则调整阈值并重复。</li>
+</ul>
+</li>
+<li>
+<p><strong>结果提取</strong>：</p>
+<ul>
+<li>一旦确定了最佳阈值，仓库和订单之间的边上的流值将代表最佳的产品分配。</li>
+<li>根据这些流值构建分配矩阵 ( A )。</li>
+</ul>
+</li>
+<li>
+<p><strong>验证</strong>：</p>
+<ul>
+<li>确保得到的分配满足每个订单的需求并且不超过仓库的库存。</li>
+<li>确认给定分配的运输时间不超过确定的最佳阈值。</li>
+</ul>
+</li>
+<li>
+<p><strong>优化和迭代</strong>：</p>
+<ul>
+<li>根据问题的大小和计算约束，考虑提高二分查找的精度或使用启发式方法加速过程。</li>
+<li>如果未来引入了额外的约束或目标，相应地调整网络流模型并迭代解决过程。</li>
+</ul>
+</li>
+<li>
+<p><strong>部署</strong>：</p>
+<ul>
+<li>一旦对算法在测试用例上的性能感到满意，就将其集成到需要产品分配决策的更大的系统或流程中。</li>
+<li>提供一个界面或集成点，用于输入运输时间矩阵、订单需求和仓库库存，并提取得到的分配决策。</li>
+</ul>
+</li>
+</ol>
+<p>通过遵循这一结构化计划，可以有效地使用网络流框架解决产品分配问题，利用二分图结构的固有优势。</p>
+
+</body>
+</html>
